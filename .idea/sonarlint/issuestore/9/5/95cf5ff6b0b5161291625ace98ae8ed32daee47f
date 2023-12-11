@@ -1,0 +1,18 @@
+
+{	java:S115W"ZRename this constant name to match the regular expression '^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$'.(¸Ëùˆıÿÿÿÿ8û¸ÄÅ1
+t	java:S116]"XRename this field "non_repeaters" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(™´Û£8û¸ÄÅ1
+u	java:S116a"ZRename this field "max_repetitions" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(¿ãŠR8û¸ÄÅ1
+}
+java:S1149¹"_Replace the synchronized class "StringBuffer" by an unsynchronized one such as "StringBuilder".(ÒÄ ÷8ü¸ÄÅ1
+t
+java:S3252m"WUse static access with "uk.co.westhawk.snmp.stack.SnmpConstants" for "GETBULK_REQ_MSG".(ôú¼‹8ş¸ÄÅ1
+S
+java:S1133—"5Do not forget to remove this deprecated code someday.(Åàî8€¸ÄÅ1
+E
+java:S1123—"'Add the missing @Deprecated annotation.(Åàî8€¸ÄÅ1
+]
+java:S1161®":Add the "@Override" annotation above this method signature(åø…úÿÿÿÿ8¸ÄÅ1
+]
+java:S1161·":Add the "@Override" annotation above this method signature(ßÔü²şÿÿÿÿ8¸ÄÅ1
+P
+java:S1068W".Remove this unused "version_id" private field.(¸Ëùˆıÿÿÿÿ8‚¸ÄÅ1

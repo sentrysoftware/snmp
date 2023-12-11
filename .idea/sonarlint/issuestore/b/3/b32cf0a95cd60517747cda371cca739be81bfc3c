@@ -1,0 +1,75 @@
+
+K
+java:S3740‚"/Provide the parametrized type for this generic.(ãþÒýÿÿÿÿ
+_
+java:S1192ˆ"HDefine a constant instead of duplicating this literal ", type=" 4 times.(–•²
+f	java:S117}"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(Öì¾´
+f	java:S117»"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ðƒd
+t	java:S115O"ZRename this constant name to match the regular expression '^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$'.(¸Ëùˆýÿÿÿÿ
+{
+java:S3038}"e"encodePacket" is defined in the "SnmpContextBasisFace" interface and can be removed from this class.(Öì¾´
+Ž
+java:S3038…"k"processIncomingPdu" is defined in the "SnmpContextBasisFace" interface and can be removed from this class.(È‡í×ùÿÿÿÿ8ÄÑßÄÅ1
+z
+java:S3038‹"c"getVersion" is defined in the "SnmpContextBasisFace" interface and can be removed from this class.(Û¤àü
+F	java:S106Ú"+Replace this use of System.out by a logger.(äÃºýøÿÿÿÿ
+F	java:S106Ý"+Replace this use of System.out by a logger.(äÃºýøÿÿÿÿ
+n
+java:S3776í"RRefactor this method to reduce its Cognitive Complexity from 19 to the 15 allowed.(ñ°ôäüÿÿÿÿ
+J
+java:S1874ƒ"3Remove this use of "newInstance"; it is deprecated.(ïÚÙ
+A	java:S106¤"+Replace this use of System.out by a logger.(ÓÃàÓ
+L
+java:S1133¸"5Do not forget to remove this deprecated code someday.(ÄÍß¸
+>
+java:S1123¸"'Add the missing @Deprecated annotation.(ÄÍß¸
+=
+java:S1125ô"'Remove the unnecessary boolean literal.(°£Ë
+F	java:S106ù"+Replace this use of System.out by a logger.(º¬Šûýÿÿÿÿ
+Q
+java:S1133 "5Do not forget to remove this deprecated code someday.(ûëÇ±ÿÿÿÿÿ
+C
+java:S1123 "'Add the missing @Deprecated annotation.(ûëÇ±ÿÿÿÿÿ
+n
+java:S3776°"RRefactor this method to reduce its Cognitive Complexity from 39 to the 15 allowed.(ÿŸ¾Ðüÿÿÿÿ
+Q
+java:S2209¶"5Change this instance-reference to a static reference.(Úõ•þÿÿÿÿ
+?
+java:S1181ù"!Catch Exception instead of Error.(¨œùì8èÑßÄÅ1
+f
+java:S2674Å"JCheck the return value of the "read" call to see how many bytes were read.(æ¯šÅÿÿÿÿÿ
+\
+java:S1193Ò"@Replace the usage of the "instanceof" operator by a catch block.(¯ Ó¥úÿÿÿÿ
+W
+java:S1193Ù"@Replace the usage of the "instanceof" operator by a catch block.(‹ôÜî
+A	java:S106Ö"+Replace this use of System.out by a logger.(Ø±ÇÈ
+F	java:S106Ý"+Replace this use of System.out by a logger.(™¯Ÿüÿÿÿÿ
+A	java:S106ä"+Replace this use of System.out by a logger.(ðœ³ê
+F	java:S106î"+Replace this use of System.out by a logger.(ÍèÇ‰üÿÿÿÿ
+F	java:S106õ"+Replace this use of System.out by a logger.(®ôÆÿùÿÿÿÿ
+F	java:S106ý"+Replace this use of System.out by a logger.(¤áúùÿÿÿÿ
+=
+java:S1125ž"'Remove the unnecessary boolean literal.(°£Ë
+A	java:S106²"+Replace this use of System.out by a logger.(†ÑÇ‰
+>
+java:S1125á"'Remove the unnecessary boolean literal.(–þò
+C
+java:S1125é"'Remove the unnecessary boolean literal.(Êö˜üùÿÿÿÿ
+n
+java:S3776Ø"RRefactor this method to reduce its Cognitive Complexity from 35 to the 15 allowed.(ÐœÔ»ýÿÿÿÿ
+C
+java:S1125Þ"'Remove the unnecessary boolean literal.(Û­Å™úÿÿÿÿ
+A	java:S106€"+Replace this use of System.out by a logger.(“„¡ˆ
+F	java:S106‡"+Replace this use of System.out by a logger.(å˜ž¥úÿÿÿÿ
+F	java:S106"+Replace this use of System.out by a logger.(×Ç¤Ïþÿÿÿÿ
+F	java:S106"+Replace this use of System.out by a logger.(×Ç¤Ïþÿÿÿÿ
+>
+java:S1125¼"'Remove the unnecessary boolean literal.(ŽÙ¥Š
+L
+java:S2209¿"5Change this instance-reference to a static reference.(ÔçÈÀ
+o
+java:S2975æ"SRemove this "clone" implementation; use a copy constructor or copy factory instead.(×µ¯˜øÿÿÿÿ
+
+java:S3038ï"c"getHashKey" is defined in the "SnmpContextBasisFace" interface and can be removed from this class.(À”“Öüÿÿÿÿ
+I
+java:S1068O".Remove this unused "version_id" private field.(¸Ëùˆýÿÿÿÿ

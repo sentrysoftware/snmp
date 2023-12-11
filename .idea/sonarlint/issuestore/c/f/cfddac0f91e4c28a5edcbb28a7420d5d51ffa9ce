@@ -1,0 +1,20 @@
+
+t	java:S115U"ZRename this constant name to match the regular expression '^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$'.(¸Ëùˆıÿÿÿÿ
+˜
+java:S1186‚"€Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation.(áÀ‹À
+
+java:S1186‡"€Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation.(ó”‹êøÿÿÿÿ
+p
+java:S3252b"UUse static access with "uk.co.westhawk.snmp.stack.SnmpConstants" for "TRPV2_REQ_MSG".(Á±ÚÂıÿÿÿÿ
+P
+java:S1161p":Add the "@Override" annotation above this method signature(ÈŸ¨Õ
+U
+java:S1161z":Add the "@Override" annotation above this method signature(ßÔü²şÿÿÿÿ
+Q
+java:S1161‚":Add the "@Override" annotation above this method signature(áÀ‹À
+V
+java:S1161‡":Add the "@Override" annotation above this method signature(ó”‹êøÿÿÿÿ
+V
+java:S1161“":Add the "@Override" annotation above this method signature(ÍÆæ‚úÿÿÿÿ
+I
+java:S1068U".Remove this unused "version_id" private field.(¸Ëùˆıÿÿÿÿ

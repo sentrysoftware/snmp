@@ -1,0 +1,65 @@
+
+E
+java:S3740e"/Provide the parametrized type for this generic.(™¤ƒ
+J
+java:S1121¥".Extract the assignment out of this expression.(ÑØìşÿÿÿÿ
+f	java:S117š"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ÙƒØ
+l	java:S117"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.( œ·Íùÿÿÿÿ
+l	java:S117«"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(¤ä«øıÿÿÿÿ
+l	java:S117°"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.( œ·Íùÿÿÿÿ
+g	java:S117¾"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(ÍÊûû
+l	java:S117Ó"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.( œ·Íùÿÿÿÿ
+U
+java:S3034¸">Prevent "int" promotion by adding "& 0xff" to this expression.(Ïœ¨‡
+Z
+java:S3034À">Prevent "int" promotion by adding "& 0xff" to this expression.(¹•Óşşÿÿÿÿ
+N
+java:S2589š"7Remove this expression which always evaluates to "true"(¡Ÿ°„
+t	java:S115g"ZRename this constant name to match the regular expression '^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$'.(¸Ëùˆıÿÿÿÿ
+v
+java:S1149â"_Replace the synchronized class "StringBuffer" by an unsynchronized one such as "StringBuilder".(Ş­©å
+Q	java:S125Q"<This block of commented-out lines of code should be removed.(°Ø¦
+?
+java:S1197o"*Move the array designators [] to the type.( ÛÇm
+V	java:S125n"<This block of commented-out lines of code should be removed.(“×ù‡ûÿÿÿÿ
+[
+java:S1124u"EReorder the modifiers to comply with the Java Language Specification.(¯Òş–
+F
+java:S1197ˆ"*Move the array designators [] to the type.(‚ò„ûÿÿÿÿ
+S
+java:S1854Ø"<Remove this useless assignment to local variable "oidArray".(ªŒ’
+O
+java:S2130æ"8Use "Long.parseLong" for this string-to-long conversion.(ƒÍ®
+D	java:S108ï")Either remove or fill this block of code.(ÒÌâ–øÿÿÿÿ
+C
+java:S1125ˆ"'Remove the unnecessary boolean literal.(À´Ëîúÿÿÿÿ
+F
+java:S1197"*Move the array designators [] to the type.( œ·Íùÿÿÿÿ
+F
+java:S1197°"*Move the array designators [] to the type.( œ·Íùÿÿÿÿ
+F
+java:S1197Ó"*Move the array designators [] to the type.( œ·Íùÿÿÿÿ
+Q
+java:S1161Ş":Add the "@Override" annotation above this method signature(ùŞø
+W
+java:S1659à"@Declare "idx" and all following declarations on a separate line.(õÔÇ­
+?
+java:S1481à"(Remove this unused "val" local variable.(õÔÇ­
+R	java:S125ä"<This block of commented-out lines of code should be removed.(Î¶½è
+F	java:S106†"+Replace this use of System.out by a logger.(êùÕ™ùÿÿÿÿ
+R	java:S125"<This block of commented-out lines of code should be removed.(Î¶½è
+i	java:S100­"NRename this method name to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(‘Ş„Îüÿÿÿÿ
+T
+java:S1854¯"8Remove this useless assignment to local variable "mask".(ÛüÃšÿÿÿÿÿ
+A
+java:S1197à"*Move the array designators [] to the type.(ÓîÁê
+@
+java:S1197ÿ"*Move the array designators [] to the type.(úŠ»=
+A
+java:S1197€"*Move the array designators [] to the type.(ã¬çĞ
+A
+java:S1197"*Move the array designators [] to the type.(Ò¼ô¾
+U
+java:S4351»">Refactor this method so that its argument is of type 'Object'.(×‚¨
+I
+java:S1068g".Remove this unused "version_id" private field.(¸Ëùˆıÿÿÿÿ

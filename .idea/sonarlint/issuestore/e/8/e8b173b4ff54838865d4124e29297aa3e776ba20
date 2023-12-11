@@ -1,0 +1,35 @@
+
+K
+java:S3740Œ"/Provide the parametrized type for this generic.(·–Œ±úÿÿÿÿ
+F
+java:S3740›"/Provide the parametrized type for this generic.(…È™ª
+K
+java:S3740Ç"/Provide the parametrized type for this generic.(ë¤÷íıÿÿÿÿ
+l	java:S117Å"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(âéâ€ûÿÿÿÿ
+l	java:S117Å"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(âéâ€ûÿÿÿÿ
+l
+java:S11288"QRemove this unnecessary import: java.lang classes are always implicitly imported.(ãø©Æşÿÿÿÿ
+u	java:S115€"ZRename this constant name to match the regular expression '^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$'.(¸Ëùˆıÿÿÿÿ
+P
+java:S5993™"9Change the visibility of this constructor to "protected".(ªáœı
+P
+java:S5993¦"9Change the visibility of this constructor to "protected".(¯ìÿ
+P
+java:S5993º"9Change the visibility of this constructor to "protected".(»Ëï
+
+java:S1149Œ"eReplace the synchronized class "Vector" by an unsynchronized one such as "ArrayList" or "LinkedList".(·–Œ±úÿÿÿÿ
+
+java:S1149Ç"eReplace the synchronized class "Vector" by an unsynchronized one such as "ArrayList" or "LinkedList".(ë¤÷íıÿÿÿÿ
+P
+java:S2130‰"9Use "Integer.parseInt" for this string-to-int conversion.(€ºÛú
+D	java:S108")Either remove or fill this block of code.(ÒÌâ–øÿÿÿÿ
+‚
+java:S2178¡"fCorrect this "&" to "&&" and extract the right operand to a variable if it should always be evaluated.(´¼•ıÿÿÿÿ
+O
+java:S11284"4Remove this unused import 'uk.co.westhawk.snmp.pdu'.(É¨½õÿÿÿÿÿ
+;
+java:S11285"%Remove this unused import 'java.awt'.(ï´µ©
+<
+java:S11287"&Remove this unused import 'java.text'.(ë¼Èí
+J
+java:S1068€".Remove this unused "version_id" private field.(¸Ëùˆıÿÿÿÿ

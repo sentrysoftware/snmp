@@ -1,0 +1,73 @@
+package org.bouncycastle.crypto;
+
+/*-
+ * ╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲
+ * SNMP Java Client
+ * ჻჻჻჻჻჻
+ * Copyright 2023 Sentry Software, Westhawk
+ * ჻჻჻჻჻჻
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Lesser Public License for more details.
+ *
+ * You should have received a copy of the GNU General Lesser Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/lgpl-3.0.html>.
+ * ╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱
+ */
+
+/**
+ * interface that a message digest conforms to.
+ */
+public interface Digest
+{
+    /**
+     * return the algorithm name
+     *
+     * @return the algorithm name
+     */
+    public String getAlgorithmName();
+
+    /**
+     * return the size, in bytes, of the digest produced by this message digest.
+     *
+     * @return the size, in bytes, of the digest produced by this message digest.
+     */
+    public int getDigestSize();
+
+    /**
+     * update the message digest with a single byte.
+     *
+     * @param in the input byte to be entered.
+     */
+    public void update(byte in);
+
+    /**
+     * update the message digest with a block of bytes.
+     *
+     * @param in the byte array containing the data.
+     * @param inOff the offset into the byte array where the data starts.
+     * @param len the length of the data.
+     */
+    public void update(byte[] in, int inOff, int len);
+
+    /**
+     * close the digest, producing the final digest value. The doFinal
+     * call leaves the digest reset.
+     *
+     * @param out the array the digest is to be copied into.
+     * @param outOff the offset into the out array the digest is to start at.
+     */
+    public int doFinal(byte[] out, int outOff);
+
+    /**
+     * reset the digest back to it's initial state.
+     */
+    public void reset();
+}

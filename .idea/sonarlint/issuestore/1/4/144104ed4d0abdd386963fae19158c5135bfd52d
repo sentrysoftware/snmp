@@ -1,0 +1,53 @@
+
+J
+java:S3740X"/Provide the parametrized type for this generic.(Ðÿêòûÿÿÿÿ
+E
+java:S3740["/Provide the parametrized type for this generic.(ðàãÏ
+J
+java:S3740h"/Provide the parametrized type for this generic.(“ºÖ«þÿÿÿÿ
+E
+java:S3740i"/Provide the parametrized type for this generic.(ÏÃ¡‹
+F
+java:S3740ñ"/Provide the parametrized type for this generic.(íÒ«
+F
+java:S3740ñ"/Provide the parametrized type for this generic.(íÒ«
+F
+java:S3740ò"/Provide the parametrized type for this generic.(ŽÉÁî
+F
+java:S3740›"/Provide the parametrized type for this generic.(õ»›
+K
+java:S3740ë"/Provide the parametrized type for this generic.(ç¯ª·ýÿÿÿÿ
+€
+java:S1488"dImmediately return this expression instead of assigning it to the temporary variable "snmpEngineId".(¬·íÄûÿÿÿÿ
+x
+java:S1488Ä"\Immediately return this expression instead of assigning it to the temporary variable "node".(×º—¨øÿÿÿÿ
+
+java:S4165–"cRemove this useless assignment; "isOut" already holds the assigned value along all execution paths.(Áåßüÿÿÿÿ
+t	java:S115L"ZRename this constant name to match the regular expression '^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$'.(¸Ëùˆýÿÿÿÿ
+t	java:S115S"ZRename this constant name to match the regular expression '^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$'.(Ï úËýÿÿÿÿ
+q
+java:S1149X"VReplace the synchronized class "Hashtable" by an unsynchronized one such as "HashMap".(Ðÿêòûÿÿÿÿ
+l
+java:S1149["VReplace the synchronized class "Hashtable" by an unsynchronized one such as "HashMap".(ðàãÏ
+|
+java:S1149ñ"eReplace the synchronized class "Vector" by an unsynchronized one such as "ArrayList" or "LinkedList".(íÒ«
+v
+java:S1149è"_Replace the synchronized class "StringBuffer" by an unsynchronized one such as "StringBuilder".(ÉÊö¤
+`
+java:S1124S"EReorder the modifiers to comply with the Java Language Specification.(Ï úËýÿÿÿÿ
+?
+java:S3010f"$Remove this assignment of "current".(¬¸ñÅýÿÿÿÿ
+F	java:S106±"+Replace this use of System.out by a logger.(ªÓ¼áþÿÿÿÿ
+A	java:S106²"+Replace this use of System.out by a logger.(–³²¸
+>
+java:S1125Ð"'Remove the unnecessary boolean literal.(óŠ’£
+C
+java:S1125×"'Remove the unnecessary boolean literal.(ä¦Øôþÿÿÿÿ
+F	java:S106ß"+Replace this use of System.out by a logger.(ªÓ¼áþÿÿÿÿ
+A	java:S106à"+Replace this use of System.out by a logger.(„ŒÁþ
+F	java:S106Ñ"+Replace this use of System.out by a logger.(ªÓ¼áþÿÿÿÿ
+A	java:S106Ò"+Replace this use of System.out by a logger.(¥ìï½
+F	java:S106Ù"+Replace this use of System.out by a logger.(ªÓ¼áþÿÿÿÿ
+A	java:S106Ú"+Replace this use of System.out by a logger.(íá²¹
+I
+java:S1068L".Remove this unused "version_id" private field.(¸Ëùˆýÿÿÿÿ

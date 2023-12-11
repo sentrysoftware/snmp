@@ -1,0 +1,36 @@
+
+J
+java:S3740e"/Provide the parametrized type for this generic.(òŸš×şÿÿÿÿ
+J
+java:S3740e"/Provide the parametrized type for this generic.(òŸš×şÿÿÿÿ
+F
+java:S3740¥"/Provide the parametrized type for this generic.(•æ¸
+K
+java:S3740"/Provide the parametrized type for this generic.(Òóóşÿÿÿÿ
+Q
+java:S1141”"5Extract this nested try block into a separate method.(ç£êúÿÿÿÿ
+t	java:S115_"ZRename this constant name to match the regular expression '^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$'.(¸Ëùˆıÿÿÿÿ
+q
+java:S1149e"VReplace the synchronized class "Hashtable" by an unsynchronized one such as "HashMap".(òŸš×şÿÿÿÿ
+{
+java:S1149"_Replace the synchronized class "StringBuffer" by an unsynchronized one such as "StringBuilder".(¨âàøÿÿÿÿ
+V
+java:S1161š":Add the "@Override" annotation above this method signature(ßÔü²şÿÿÿÿ
+Q
+java:S1161¿":Add the "@Override" annotation above this method signature(¬ğ¾
+n
+java:S3776â"RRefactor this method to reduce its Cognitive Complexity from 28 to the 15 allowed.(ëÃòéùÿÿÿÿ
+V
+java:S1161â":Add the "@Override" annotation above this method signature(ëÃòéùÿÿÿÿ
+A	java:S106é"+Replace this use of System.out by a logger.(³È’Ã
+A	java:S106õ"+Replace this use of System.out by a logger.(³È’Ã
+>
+java:S1125ÿ"'Remove the unnecessary boolean literal.(¥æ¾±
+?	java:S108š")Either remove or fill this block of code.(ºâÆ„
+w
+java:S3252±"`Use static access with "uk.co.westhawk.snmp.stack.SnmpConstants" for "SNMP_ERR_DECODINGASN_EXC".(£Áõ­
+
+java:S3252»"eUse static access with "uk.co.westhawk.snmp.stack.SnmpConstants" for "SNMP_ERR_DECODINGPKTLNGTH_EXC".(éêÕøşÿÿÿÿ
+W	java:S125Ê"<This block of commented-out lines of code should be removed.(ÒÌâ–øÿÿÿÿ
+I
+java:S1068_".Remove this unused "version_id" private field.(¸Ëùˆıÿÿÿÿ

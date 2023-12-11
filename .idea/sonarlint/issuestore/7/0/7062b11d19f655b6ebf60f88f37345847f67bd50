@@ -1,0 +1,71 @@
+
+a	java:S112†"FDefine and throw a dedicated exception instead of using a generic one.(×¡ûÊÿÿÿÿÿ
+\	java:S112ı"FDefine and throw a dedicated exception instead of using a generic one.(— ç
+\	java:S112¼"FDefine and throw a dedicated exception instead of using a generic one.(Ñ‡‡
+\	java:S112š"FDefine and throw a dedicated exception instead of using a generic one.(— ç
+g	java:S117ù"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(¡ÕÉÓ
+g	java:S117û"QRename this local variable to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(¾ŠáÉ
+q
+java:S1104j"VMake HEX_PREFIX a static final constant or non-public and provide accessors if needed.(Æ«ôñşÿÿÿÿ
+k
+java:S1104v"UMake CALFORMAT a static final constant or non-public and provide accessors if needed.(óú¡Ã
+v
+java:S1104~"[Make printableObject a static final constant or non-public and provide accessors if needed.(úûöºşÿÿÿÿ
+K
+java:S1444j"0Make this "public static HEX_PREFIX" field final(Æ«ôñşÿÿÿÿ
+E
+java:S1444v"/Make this "public static CALFORMAT" field final(óú¡Ã
+P
+java:S1444~"5Make this "public static printableObject" field final(úûöºşÿÿÿÿ
+t	java:S115c"ZRename this constant name to match the regular expression '^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$'.(¸Ëùˆıÿÿÿÿ
+p
+java:S3008j"URename this field "HEX_PREFIX" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(Æ«ôñşÿÿÿÿ
+j
+java:S3008v"TRename this field "CALFORMAT" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(óú¡Ã
+{
+java:S1149Á"_Replace the synchronized class "StringBuffer" by an unsynchronized one such as "StringBuilder".(œ–úíÿÿÿÿÿ
+v
+java:S1149¢"_Replace the synchronized class "StringBuffer" by an unsynchronized one such as "StringBuilder".(Ş­©å
+<
+java:S2885v"&Make "CALFORMAT" an instance variable.(óú¡Ã
+F
+java:S1197€"*Move the array designators [] to the type.(ïÖâïøÿÿÿÿ
+A
+java:S1197‹"*Move the array designators [] to the type.(Ç€ßÕ
+A
+java:S1197š"*Move the array designators [] to the type.(Ôîèœ
+F
+java:S1197«"*Move the array designators [] to the type.(³´Š‰úÿÿÿÿ
+@
+java:S1905È")Remove this unnecessary cast to "double".(ñ¾´š
+D
+java:S1481å"(Remove this unused "str" local variable.(ûÍÇÉøÿÿÿÿ
+R	java:S125æ"<This block of commented-out lines of code should be removed.(Ûûß¦
+8
+java:S1116ñ"Remove this empty statement.(Åñ­õşÿÿÿÿ
+V
+java:S1161€":Add the "@Override" annotation above this method signature(§÷˜šøÿÿÿÿ
+A	java:S106"+Replace this use of System.out by a logger.(ùšŸß
+I
+java:S1135­"2Complete the task associated to this TODO comment.(‰Çü
+W	java:S125¶"<This block of commented-out lines of code should be removed.(ûÍÇÉøÿÿÿÿ
+N
+java:S1135±"2Complete the task associated to this TODO comment.(’¶Çêøÿÿÿÿ
+C
+java:S1905‘"'Remove this unnecessary cast to "long".(ÎÉÈ’şÿÿÿÿ
+S
+java:S4719Ï"<Replace charset name argument with StandardCharsets.US_ASCII(¢Û¥Û
+V
+java:S1854®":Remove this useless assignment to local variable "minUTC".(Çå’úÿÿÿÿ
+G
+java:S1481®"+Remove this unused "minUTC" local variable.(Çå’úÿÿÿÿ
+A
+java:S1197û"*Move the array designators [] to the type.(¾ŠáÉ
+A
+java:S1197ª"*Move the array designators [] to the type.(ÍˆÏ
+F
+java:S1197«"*Move the array designators [] to the type.(Àìú·ùÿÿÿÿ
+F
+java:S1197Ï"*Move the array designators [] to the type.(˜Øõ¼üÿÿÿÿ
+I
+java:S1068c".Remove this unused "version_id" private field.(¸Ëùˆıÿÿÿÿ
