@@ -2,7 +2,7 @@
 The SNMP Java client enables you to run SNMP operations, including:
 
 - SNMP Client initialization
-- Execution of single requests (`Get` and `GetNext`) , as well as multiple request functionalities (`Walk` and `Table`)
+- Execution of single requests (`Get` and `GetNext`), as well as multiple request functionalities (`Walk` and `Table`)
 - Request execution on remote devices, supporting SNMP v1, v2c, or v3 implementations
 
 # How to run the SNMP Client inside Java
@@ -29,21 +29,23 @@ Invoke the SNMP Client:
 		final int version = SnmpClient.SNMP_V2C;
 		final int[] retryIntervals = { 500, 1000, 2000 };
 		final String community = "my-community";
-		final String authType = null; // SnmpClient.SNMP_AUTH_MD5;
-		final String authUsername = null; // "my-username";
-		final String authPassword = null; // "my-auth-password";
-		final String privacyType = null; // SnmpClient.SNMP_PRIVACY_AES;
-		final String privacyPassword = null; // "my-privacy-password";
-		final String contextName = null; // "my-context-name";
+
+		// SNMP v3 settings
+		final String authType = null; // E.g. SnmpClient.SNMP_AUTH_MD5;
+		final String authUsername = null; // E.g. "my-username";
+		final String authPassword = null; // E.g. "my-auth-password";
+		final String privacyType = null; // E.g. SnmpClient.SNMP_PRIVACY_AES;
+		final String privacyPassword = null; // E.g. "my-privacy-password";
+		final String contextName = null; // E.g. "my-context-name";
 		final byte[] contextID = {};
 
-        	// Initialize the SNMP Client
-        	final SnmpClient snmpClient = new SnmpClient(
-        		hostname,
-        		port,
-        		version,
-        		retryIntervals,
-        		community,
+		// Initialize the SNMP Client
+		final SnmpClient snmpClient = new SnmpClient(
+			hostname,
+			port,
+			version,
+			retryIntervals,
+			community,
 			authType,
 			authUsername,
 			authPassword,
@@ -51,7 +53,7 @@ Invoke the SNMP Client:
 			privacyPassword,
 			contextName,
 			contextID
-        	);
+		);
 
 		// MIB 2 DOD OID
 		final String oid = "1.3.6";

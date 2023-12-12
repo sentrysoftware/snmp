@@ -38,21 +38,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SnmpClient
-{
+public class SnmpClient {
+
 	// Default SNMP port number
-	static public final int SNMP_PORT = 161;
+	public static final int SNMP_PORT = 161;
 
 	// SNMP v1, v2c, v3
-	static public final int SNMP_V1 = 1;
-	static public final int SNMP_V2C = 2;
-	static public final int SNMP_V3 = 3;
-	static public final String SNMP_AUTH_MD5 = "MD5";
-	static public final String SNMP_AUTH_SHA = "SHA";
-	static public final String SNMP_PRIVACY_DES = "DES";
-	static public final String SNMP_PRIVACY_AES = "AES";
-	static public final String SNMP_NONE = "None";
-
+	public static final int SNMP_V1 = 1;
+	public static final int SNMP_V2C = 2;
+	public static final int SNMP_V3 = 3;
+	public static final String SNMP_AUTH_MD5 = "MD5";
+	public static final String SNMP_AUTH_SHA = "SHA";
+	public static final String SNMP_PRIVACY_DES = "DES";
+	public static final String SNMP_PRIVACY_AES = "AES";
+	public static final String SNMP_NONE = "None";
 
 	private SnmpContext contextv1 = null;
 	private SnmpContextv2c contextv2c = null;
@@ -70,7 +69,7 @@ public class SnmpClient
 	private int[] retryIntervals;
 	private String contextName;
 	private byte[] contextEngineID;
-	static public final String SOCKET_TYPE = "Standard";
+	public static final String SOCKET_TYPE = "Standard";
 
 	/**
 	 * Creates an SNMPClient instance, which connects to the specified SNMP agent with the specified credentials
