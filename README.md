@@ -5,7 +5,9 @@
 ![GitHub top language](https://img.shields.io/github/languages/top/sentrysoftware/snmp)
 ![License](https://img.shields.io/github/license/sentrysoftware/snmp)
 
-The SNMP Java client is a library that allows to execute commands using SNMP protocol in distant hosts.
+This project is a fork of the excellent [Westhawk's SNMP Library for Java](https://snmp.westhawk.co.uk/) ([see also](https://code.google.com/archive/p/snmp123)).
+
+The SNMP Java client is designed to interact with remote hosts implementing SNMP v1, v2c, or v3 and allows to execute SNMP requests, including `Get` and `GetNext` requests as well as `Walk` and `Table` functionalities that represent an enhancements over traditional SNMP `Get` and `GetNext` methods.
 
 See [Project Documentation](https://sentrysoftware.github.io/snmp/) and the [Javadoc](https://sentrysoftware.github.io/snmp/apidocs/) for more information on how to use this library in your code.
 
@@ -33,7 +35,7 @@ But it is strongly recommended to only use [GitHub Actions "Release to Maven Cen
 
 ## License
 
-License is Apache-2. Each source file must include the Apache-2 header (build will fail otherwise). To update source files with the proper header, simply execute the below command:
+License is GNU General Lesser Public License (LGPL) version 3.0. Each source file includes the LGPL-3 header (build will fail otherwise). To update source files with the proper header, simply execute the below command:
 
 ```bash
 mvn license:update-file-header
