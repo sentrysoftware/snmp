@@ -32,12 +32,12 @@ import java.util.List;
 public class SnmpClient
 {
 	// Default SNMP port number
-	static public final int snmpPort = 161;
+	static public final int SNMP_PORT = 161;
 
 	// SNMP v1, v2c, v3
-	static public final int SNMP_v1 = 1;
-	static public final int SNMP_v2c = 2;
-	static public final int SNMP_v3 = 3;
+	static public final int SNMP_V1 = 1;
+	static public final int SNMP_V2C = 2;
+	static public final int SNMP_V3 = 3;
 	static public final String SNMP_AUTH_MD5 = "MD5";
 	static public final String SNMP_AUTH_SHA = "SHA";
 	static public final String SNMP_PRIVACY_DES = "DES";
@@ -61,7 +61,7 @@ public class SnmpClient
 	private int[] retryIntervals;
 	private String contextName;
 	private byte[] contextEngineID;
-	static public final String socketType = "Standard";
+	static public final String SOCKET_TYPE = "Standard";
 
 	/**
 	 * Creates an SNMPClient instance, which connects to the specified SNMP agent with the specified credentials
@@ -119,7 +119,7 @@ public class SnmpClient
 	private void validate(int version, String authType, String privacyType) {
 
 		// In case of SNMP v3, check the authType and privType (if not empty)
-		if (version == SNMP_v3) {
+		if (version == SNMP_V3) {
 			if (authType != null) {
 				if (!authType.isEmpty()) {
 					if (!authType.equals(SNMP_AUTH_MD5) && !authType.equals(SNMP_AUTH_SHA)) {
@@ -148,13 +148,13 @@ public class SnmpClient
 	private void initialize() throws IOException {
 
 		// SNMP v2c
-		if (snmpVersion == SNMP_v2c) {
-			contextv2c = new SnmpContextv2c(host, port, null, socketType);
+		if (snmpVersion == SNMP_V2C) {
+			contextv2c = new SnmpContextv2c(host, port, null, SOCKET_TYPE);
 			contextv2c.setCommunity(community);
 		}
 
 		// SNMP v3
-		else if (snmpVersion == SNMP_v3) {
+		else if (snmpVersion == SNMP_V3) {
 			int authProtocolCode = 0;
 			int privacyProtocolCode = 0;
 			boolean authenticate = false;
@@ -209,7 +209,7 @@ public class SnmpClient
 			}
 
 			// Create the context
-			contextv3 = new SnmpContextv3(host, port, socketType);
+			contextv3 = new SnmpContextv3(host, port, SOCKET_TYPE);
 			contextv3.setContextEngineId(contextEngineID);
 			contextv3.setContextName(contextName);
 			contextv3.setUserName(authUsername);
@@ -227,7 +227,7 @@ public class SnmpClient
 
 		// SNMP v1 (default)
 		else {
-			contextv1 = new SnmpContext(host, port, socketType);
+			contextv1 = new SnmpContext(host, port, SOCKET_TYPE);
 			contextv1.setCommunity(community);
 		}
 
@@ -257,8 +257,8 @@ public class SnmpClient
 	 */
 	private void createPdu() {
 		// Create the PDU based on the proper context
-		if (snmpVersion == SNMP_v2c) { pdu = new BlockPdu(contextv2c); }
-		else if (snmpVersion == SNMP_v3) { pdu = new BlockPdu(contextv3); }
+		if (snmpVersion == SNMP_V2C) { pdu = new BlockPdu(contextv2c); }
+		else if (snmpVersion == SNMP_V3) { pdu = new BlockPdu(contextv3); }
 		else { pdu = new BlockPdu(contextv1); }
 
 		// Set the timeout

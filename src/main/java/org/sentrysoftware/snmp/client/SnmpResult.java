@@ -22,8 +22,7 @@
 
 package org.sentrysoftware.snmp.client;
 
-public class SnmpResult
-{
+public class SnmpResult {
 	public String oid = "";
 	public String value = "";
 	public String type = "";
