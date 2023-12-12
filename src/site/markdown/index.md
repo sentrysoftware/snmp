@@ -1,3 +1,64 @@
-# Documentation
+# SNMP Java Client
+The SNMP Java client enables you to run SNMP operations, including:
 
-This is the documentation.
+- SNMP Client initialization
+- Execution of single requests (`Get` and `GetNext`) , as well as multiple request functionalities (`Walk` and `Table`)
+- Request execution on remote devices, supporting SNMP v1, v2c, or v3 implementations
+
+# How to run the SNMP Client inside Java
+
+Add SNMP in the list of dependencies in your [Maven pom.xml](pom.xml):
+
+```
+<dependencies>
+	<!-- [...] -->
+	<dependency>
+		<groupId>org.sentrysoftware</groupId>
+		<artifactId>snmp</artifactId>
+		<version>${project.version}</version>
+	</dependency>
+</dependencies>
+```
+
+Invoke the SNMP Client:
+
+```
+	public static void main(String[] args) throws Exception {
+		final String hostname = "my-hostname";
+		final int port = 161;
+		final int version = SnmpClient.SNMP_V2C;
+		final int[] retryIntervals = { 500, 1000, 2000 };
+		final String community = "my-community";
+		final String authType = null; // SnmpClient.SNMP_AUTH_MD5;
+		final String authUsername = null; // "my-username";
+		final String authPassword = null; // "my-auth-password";
+		final String privacyType = null; // SnmpClient.SNMP_PRIVACY_AES;
+		final String privacyPassword = null; // "my-privacy-password";
+		final String contextName = null; // "my-context-name";
+		final byte[] contextID = {};
+
+        	// Initialize the SNMP Client
+        	final SnmpClient snmpClient = new SnmpClient(
+        		hostname,
+        		port,
+        		version,
+        		retryIntervals,
+        		community,
+			authType,
+			authUsername,
+			authPassword,
+			privacyType,
+			privacyPassword,
+			contextName,
+			contextID
+        	);
+
+		// MIB 2 DOD OID
+		final String oid = "1.3.6";
+
+		// Perform a GetNext operation on the specified MIB 2 OID
+		final String result = snmpClient.getNext(oid);
+
+		System.out.println("SNMP GetNext Result: " + result);
+	}
+```
