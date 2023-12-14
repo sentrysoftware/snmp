@@ -7,7 +7,7 @@ The SNMP Java client enables you to run SNMP operations, including:
 
 # How to run the SNMP Client inside Java
 
-Add SNMP in the list of dependencies in your [Maven pom.xml](pom.xml):
+Add SNMP in the list of dependencies in your [Maven **pom.xml**](https://maven.apache.org/pom.html):
 
 ```
 <dependencies>
