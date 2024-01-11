@@ -5,14 +5,11 @@
 ![GitHub top language](https://img.shields.io/github/languages/top/sentrysoftware/snmp)
 ![License](https://img.shields.io/github/license/sentrysoftware/snmp)
 
-The SNMP Java client enables you to run SNMP operations, including:
+This project is a fork of the excellent [Westhawk's SNMP Library for Java](https://snmp.westhawk.co.uk/) ([see also](https://code.google.com/archive/p/snmp123)).
 
-- SNMP Client initialization
-- Execution of single requests (`Get` and `GetNext`), as well as multiple request functionalities (`Walk` and `Table`)
-- Request execution on remote devices, supporting SNMP v1, v2c, or v3 implementations
+The SNMP Java client is designed to interact with remote hosts implementing SNMP v1, v2c, or v3 and allows to execute SNMP requests, including `Get` and `GetNext` requests as well as `Walk` and `Table` functionalities that represent an enhancements over traditional SNMP `Get` and `GetNext` methods.
 
 See [Project Documentation](https://sentrysoftware.org/snmp/) and the [Javadoc](https://sentrysoftware.org/snmp/apidocs/) for more information on how to use this library in your code.
-
 ## Build instructions
 
 This is a simple Maven project. Build with:
