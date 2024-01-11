@@ -13,7 +13,7 @@
 		<url>https://sentrysoftware.com</url>
 	</organization>
 
-	<url>https://sentrysoftware.github.io/snmp</url>
+	<url>https://sentrysoftware.org/snmp</url>
 	<inceptionYear>2023</inceptionYear>
 
 	<distributionManagement>
@@ -42,7 +42,7 @@
 
 	<scm>
 		<connection>scm:git:https://github.com/sentrysoftware/snmp.git</connection>
-		<url>https://sentrysoftware.github.io/snmp</url>
+		<url>https://sentrysoftware.org/snmp</url>
 		<tag>HEAD</tag>
 	</scm>
 
