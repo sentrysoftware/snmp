@@ -120,12 +120,14 @@ implements SnmpContextv3Face, Cloneable
     protected String userAuthenticationPassword;
     protected byte[] userAuthKeyMD5 = null;
     protected byte[] userAuthKeySHA1 = null;
+    protected byte[] userAuthKeySHA256 = null;
     protected int authenticationProtocol = MD5_PROTOCOL;
     protected int privacyProtocol = DES_ENCRYPT ;
     protected boolean usePrivacy = false;
     protected String userPrivacyPassword;
     protected byte[] userPrivKeyMD5 = null;
     protected byte[] userPrivKeySHA1 = null;
+    protected byte[] userPrivKeySHA256 = null;
     protected byte [] contextEngineId = new byte[0];
     protected String contextName = Default_ContextName;
     protected UsmAgent usmAgent = null;
@@ -268,6 +270,7 @@ public void setUserAuthenticationPassword(String newUserAuthPassword)
         userAuthenticationPassword = newUserAuthPassword;
         userAuthKeyMD5 = null;
         userAuthKeySHA1 = null;
+        userAuthKeySHA256 = null;
     }
 }
 
@@ -283,7 +286,7 @@ public void setUserAuthenticationPassword(String newUserAuthPassword)
 public void setAuthenticationProtocol(int protocol)
 throws IllegalArgumentException
 {
-    if (protocol == MD5_PROTOCOL || protocol == SHA1_PROTOCOL)
+    if (protocol == MD5_PROTOCOL || protocol == SHA1_PROTOCOL || protocol == SHA256_PROTOCOL)
     {
         if (protocol != authenticationProtocol)
         {
@@ -369,6 +372,15 @@ byte[] getAuthenticationPasswordKeySHA1()
     return userAuthKeySHA1;
 }
 
+byte[] getAuthenticationPasswordKeySHA256()
+{
+    if (userAuthKeySHA256 == null)
+    {
+    	userAuthKeySHA256 = SnmpUtilities.passwordToKeySHA256(userAuthenticationPassword);
+    }
+    return userAuthKeySHA256;
+}
+
 
 byte[] getPrivacyPasswordKeyMD5()
 {
@@ -388,6 +400,12 @@ byte[] getPrivacyPasswordKeySHA1()
     return userPrivKeySHA1;
 }
 
+public byte[] getPrivacyPasswordKeySHA256() {
+	if (userPrivKeySHA256 == null) {
+		userPrivKeySHA256 = SnmpUtilities.passwordToKeySHA256(userPrivacyPassword);
+	}
+	return userPrivKeySHA256;
+}
 
 /**
  * Returns if privacy is used or not.
@@ -440,6 +458,7 @@ public void setUserPrivacyPassword(String newUserPrivacyPassword)
         userPrivacyPassword = newUserPrivacyPassword;
         userPrivKeyMD5 = null;
         userPrivKeySHA1 = null;
+        userPrivKeySHA256 = null;
     }
 }
 
@@ -1154,6 +1173,5 @@ public String toString()
     buffer.append("]");
     return buffer.toString();
 }
-
 
 }

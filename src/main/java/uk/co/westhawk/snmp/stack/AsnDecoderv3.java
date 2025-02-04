@@ -259,11 +259,14 @@ throws IOException, DecodingException
                 byte[] passwKey = context.getPrivacyPasswordKeyMD5();
                 privKey = SnmpUtilities.getLocalizedKeyMD5(passwKey, engineId);
             }
-            else
+            else if (prot == context.SHA1_PROTOCOL)
             {
                 byte[] passwKey = context.getPrivacyPasswordKeySHA1();
                 privKey = SnmpUtilities.getLocalizedKeySHA1(passwKey, engineId);
-            }
+			} else if (prot == context.SHA256_PROTOCOL) {
+				byte[] passwKey = context.getPrivacyPasswordKeySHA256();
+				privKey = SnmpUtilities.getLocalizedKeySHA256(passwKey, engineId);
+			}
 
             AsnOctets asnEncryptedScopedPdu = (AsnOctets)asnScopedObject;
             byte[] encryptedText = asnEncryptedScopedPdu.getBytes();
@@ -348,7 +351,7 @@ throws IOException, DecodingException
 
         byte[] calcFingerPrint = null;
         // Replace the real finger print with the dummy finger print
-        System.arraycopy(AsnEncoderv3.dummyFingerPrint, 0, 
+        System.arraycopy(context.getAuthenticationProtocol() == context.SHA256_PROTOCOL ?  AsnEncoderv3.dummySHA256FingerPrint : AsnEncoderv3.dummyFingerPrint, 0, 
               message, fpPos, realFingerPrint.length);
         int prot = context.getAuthenticationProtocol();
         if (prot == context.MD5_PROTOCOL)
@@ -359,13 +362,17 @@ throws IOException, DecodingException
             calcFingerPrint = SnmpUtilities.getFingerPrintMD5(authkey,
                   message);
         }
-        else
+        else if (prot == context.SHA1_PROTOCOL)
         {
             byte[] passwKey = context.getAuthenticationPasswordKeySHA1();
             byte[] authkey = SnmpUtilities.getLocalizedKeySHA1(passwKey,
                   engineId);
             calcFingerPrint = SnmpUtilities.getFingerPrintSHA1(authkey,
                   message);
+        } else if (prot == context.SHA256_PROTOCOL) {
+	       	 byte[] passwKey = context.getAuthenticationPasswordKeySHA256();
+	       	 byte[] authkey = SnmpUtilities.getLocalizedKeySHA256(passwKey, engineId);
+	       	 calcFingerPrint = SnmpUtilities.getFingerPrintSHA256(authkey, message);
         }
 
         if (SnmpUtilities.areBytesEqual(realFingerPrint, calcFingerPrint) == false)

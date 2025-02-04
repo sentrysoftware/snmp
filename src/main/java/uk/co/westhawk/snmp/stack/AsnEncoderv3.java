@@ -64,6 +64,7 @@ package uk.co.westhawk.snmp.stack;
  */
 import uk.co.westhawk.snmp.util.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -82,6 +83,35 @@ class AsnEncoderv3 extends AsnEncoderBase
     // 12 zero octets
     static byte dummyFingerPrint[] =
     {
+        (byte)(0x0),
+        (byte)(0x0),
+        (byte)(0x0),
+        (byte)(0x0),
+        (byte)(0x0),
+        (byte)(0x0),
+        (byte)(0x0),
+        (byte)(0x0),
+        (byte)(0x0),
+        (byte)(0x0),
+        (byte)(0x0),
+        (byte)(0x0),
+    };
+
+    // 24 zero octets
+    static byte dummySHA256FingerPrint[] =
+    {
+        (byte)(0x0),
+        (byte)(0x0),
+        (byte)(0x0),
+        (byte)(0x0),
+        (byte)(0x0),
+        (byte)(0x0),
+        (byte)(0x0),
+        (byte)(0x0),
+        (byte)(0x0),
+        (byte)(0x0),
+        (byte)(0x0),
+        (byte)(0x0),
         (byte)(0x0),
         (byte)(0x0),
         (byte)(0x0),
@@ -138,7 +168,7 @@ byte[] EncodeSNMPv3(SnmpContextv3Basis context,
     AsnOctets fingerPrintOct;
     if (context.isUseAuthentication())
     {
-        fingerPrintOct = new AsnOctets(dummyFingerPrint);
+        fingerPrintOct = new AsnOctets(context.getAuthenticationProtocol() == context.SHA256_PROTOCOL ? dummySHA256FingerPrint : dummyFingerPrint);
     }
     else
     {
@@ -158,11 +188,15 @@ byte[] EncodeSNMPv3(SnmpContextv3Basis context,
             privKey = SnmpUtilities.getLocalizedKeyMD5(passwKey, 
                   node.getSnmpEngineId());
         }
-        else
+        else if (aprot == context.SHA1_PROTOCOL)
         {
             byte[] passwKey = context.getPrivacyPasswordKeySHA1();
             privKey = SnmpUtilities.getLocalizedKeySHA1(passwKey, 
                   node.getSnmpEngineId());
+        } else if (aprot == context.SHA256_PROTOCOL)
+        {
+            byte[] passwKey = context.getPrivacyPasswordKeySHA256();
+			privKey = SnmpUtilities.getLocalizedKeySHA256(passwKey, node.getSnmpEngineId());
         }
 
         int pprot = context.getPrivacyProtocol();
@@ -253,29 +287,39 @@ byte[] EncodeSNMPv3(SnmpContextv3Basis context,
             calcFingerPrint = SnmpUtilities.getFingerPrintMD5(authkey, 
                   message);
         }
-        else
+        else if (prot == context.SHA1_PROTOCOL)
         {
             byte[] passwKey = context.getAuthenticationPasswordKeySHA1();
             byte[] authkey = SnmpUtilities.getLocalizedKeySHA1(passwKey, 
                   node.getSnmpEngineId());
             calcFingerPrint = SnmpUtilities.getFingerPrintSHA1(authkey, 
                   message);
+        }  else if (prot == context.SHA256_PROTOCOL) {
+        	 byte[] passwKey = context.getAuthenticationPasswordKeySHA256();
+        	 byte[] authkey = SnmpUtilities.getLocalizedKeySHA256(passwKey, node.getSnmpEngineId());
+        	 calcFingerPrint = SnmpUtilities.getFingerPrintSHA256(authkey, message);
         }
 
-        int usmPos = asnSecurityParameters.getContentsPos();
-        int fpPos = fingerPrintOct.getContentsPos();
-        fpPos += usmPos;
-        if (AsnObject.debug > 10)
-        {
-            int fpLength = fingerPrintOct.getContentsLength();
-            String str = "Pos finger print = " + fpPos
-                + ", len = " + fpLength;
-            SnmpUtilities.dumpBytes(str, calcFingerPrint);
-        }
+            int usmPos = asnSecurityParameters.getContentsPos();
+            int fpPos = fingerPrintOct.getContentsPos();
+            fpPos += usmPos;
+            if (AsnObject.debug > 10)
+            {
+                int fpLength = fingerPrintOct.getContentsLength();
+                String str = "Pos finger print = " + fpPos
+                    + ", len = " + fpLength;
+                SnmpUtilities.dumpBytes(str, calcFingerPrint);
+            }
 
-        // Replace the dummy finger print with the real finger print
-        System.arraycopy(calcFingerPrint, 0, 
-              message, fpPos, dummyFingerPrint.length);
+			if (prot == context.SHA256_PROTOCOL) {
+				// Replace the dummy finger print with the real finger print
+				System.arraycopy(calcFingerPrint, 0, message, fpPos, 24);
+			} else {
+				// Replace the dummy finger print with the real finger print
+				System.arraycopy(calcFingerPrint, 0, message, fpPos, dummyFingerPrint.length);
+			}
+
+
     }
     return message;
 }
