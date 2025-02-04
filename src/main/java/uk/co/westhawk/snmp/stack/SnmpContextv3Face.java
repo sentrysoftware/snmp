@@ -127,9 +127,9 @@ public interface SnmpContextv3Face extends SnmpContextBasisFace
         "SHA256",
     };
 
-    /**
-     * The SHA-256 protocol type.
-     */
+	/**
+	 * The SHA-256 protocol type.
+	 */
 	public static final int SHA256_PROTOCOL = 4;
 
 /**

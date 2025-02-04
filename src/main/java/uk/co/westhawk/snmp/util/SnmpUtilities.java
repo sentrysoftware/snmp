@@ -48,19 +48,14 @@ package uk.co.westhawk.snmp.util;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * ╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱
  */
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 
 import uk.co.westhawk.snmp.stack.*;
 
-import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.digests.*;
 import org.bouncycastle.crypto.params.*;
 import org.bouncycastle.crypto.engines.*;
@@ -75,7 +70,12 @@ import org.bouncycastle.crypto.engines.*;
  */
 public class SnmpUtilities extends Object
 {
-    private static final String     version_id =
+	/**
+	 * The SHA-256 algorithm name.
+	 */
+	private static final String SHA256_ALGORITHM = "SHA-256";
+
+	private static final String     version_id =
         "@(#)$Id: SnmpUtilities.java,v 1.27 2009/03/05 12:57:57 birgita Exp $ Copyright Westhawk Ltd";
 
     final static int ONEMEG = 1048576;
@@ -1113,121 +1113,139 @@ final static void setBytesFromLong(byte[] ret, long value, int offs)
     ret[j++] = (byte)((v >>>  0) & 0xFF);
 }
 
+	/**
+	 * Converts the user's passphrase into a 32-byte SHA-256 key by hashing one
+	 * megabyte of repeated passphrase data. (Based on the MD5/SHA1 approach in RFC
+	 * 3414, extended for SHA-256.)
+	 * 
+	 * @param userPrivacyPassword The user's passphrase
+	 */
+	public static byte[] passwordToKeySHA256(String userPrivacyPassword) {
+		byte[] ret;
+		byte[] passwordBuf = new byte[64];
+		int pl = userPrivacyPassword.length();
+		byte[] pass = new byte[pl];
 
-public static byte[] passwordToKeySHA256(String userPrivacyPassword) {
-	SHA256Digest sha = new SHA256Digest();
-    byte[] ret;
-    byte[] passwordBuf = new byte[64];
-    int pl = userPrivacyPassword.length();
-    byte[] pass = new byte[pl];
+		// Convert passphrase string to bytes
+		for (int i = 0; i < pl; i++) {
+			pass[i] = (byte) (0xFF & userPrivacyPassword.charAt(i));
+		}
 
-    // Convert password string to byte array
-    for (int i = 0; i < pl; i++)
-    {
-        pass[i] = (byte) (0xFF & userPrivacyPassword.charAt(i));
-    }
+		int count = 0;
+		int passwordIndex = 0;
 
-    int count = 0;
-    int passwordIndex = 0;
+		try {
+			MessageDigest sha = MessageDigest.getInstance(SHA256_ALGORITHM);
 
-    synchronized (sha)
-    {
-        while (count < ONEMEG)
-        {
-            int cp = 0;
-            int i = 0;
-            while (i < 64)
-            {
-                int pim = passwordIndex % pl;
-                int len = 64 - cp;
-                int pr = pl - pim;
-                if (len > pr)
-                {
-                    len = pr;
-                }
-                System.arraycopy(pass, pim, passwordBuf, cp, len);
-                i += len;
-                cp += len;
-                passwordIndex += len;
-            }
+			// Hash 1 MB of repeated passphrase blocks (64 bytes at a time)
+			while (count < ONEMEG) {
+				int cp = 0;
+				int i = 0;
+				while (i < 64) {
+					int pim = passwordIndex % pl;
+					int len = 64 - cp;
+					int pr = pl - pim;
+					if (len > pr) {
+						len = pr;
+					}
+					System.arraycopy(pass, pim, passwordBuf, cp, len);
+					i += len;
+					cp += len;
+					passwordIndex += len;
+				}
+				sha.update(passwordBuf, 0, passwordBuf.length);
+				count += 64;
+			}
 
-            sha.update(passwordBuf, 0, passwordBuf.length);
-            count += 64;
-        }
+			// Finalize the 32-byte key
+			ret = sha.digest();
+		} catch (NoSuchAlgorithmException e) {
+			throw new IllegalStateException("SHA-256 not supported, failed to generate key", e);
+		}
 
-        ret = new byte[sha.getDigestSize()];
-        sha.doFinal(ret, 0);
-    }
+		return ret;
+	}
 
-    return ret;
-}
+	/**
+	 * Converts the user's password and the SNMP Engine Id to the localized key
+	 * 
+	 * @param passwKey     The password key
+	 * @param snmpEngineId The SNMP engine Id
+	 * @return localized key using the SHA-256 protocol
+	 */
+	public static byte[] getLocalizedKeySHA256(final byte[] passwKey, final String snmpEngineId) {
+		byte[] ret = null;
+		byte[] beid = toBytes(snmpEngineId); // Convert engineId (Hex string?) to raw bytes
+	
+		if (passwKey == null) {
+			return null;
+		}
+	
+		try {
+			final MessageDigest sha = MessageDigest.getInstance(SHA256_ALGORITHM);
+			sha.update(passwKey, 0, passwKey.length);
+			sha.update(beid, 0, beid.length);
+			sha.update(passwKey, 0, passwKey.length);
+			ret = sha.digest(); // 32-byte SHA-256 result
+		} catch (NoSuchAlgorithmException e) {
+			throw new IllegalStateException("SHA-256 not supported, failed to generate localized key", e);
+		}
+	
+		return ret;
+	}
 
-public static byte[] getLocalizedKeySHA256(byte[] passwKey, String snmpEngineId) {
-	 byte[] ret = null;
-	    SHA256Digest sha = new SHA256Digest();
-	    sha.reset();
+	/**
+	 * Create a fingerprint using the SHA-256 algorithm with length 24 bytes.
+	 * @param key     The key to use for the first digest
+	 * @param message The message to use for the second digest
+	 * @return The fingerprint of the message
+	 */
+	public static byte[] getFingerPrintSHA256(final byte[] key, final byte[] message) {
+		if ((AsnObject.debug > 5) && (key.length != 32)) {
+			System.out.println("SHA256 key length wrong");
+		}
+		try {
+			return doFingerPrintSHA256(key, message);
+		} catch (NoSuchAlgorithmException e) {
+			throw new IllegalStateException("SHA-256 not supported, failed to generate fingerprint", e);
+		}
+	}
 
-	    byte[] beid = toBytes(snmpEngineId);
-	    if ((beid != null) && (passwKey != null))
-	    {
-	        sha.update(passwKey, 0, passwKey.length);
-	        sha.update(beid, 0, beid.length);
-	        sha.update(passwKey, 0, passwKey.length);
-	        ret = new byte[sha.getDigestSize()];
-	        sha.doFinal(ret, 0);
-	    }
-	    return ret;
-}
+	/**
+	 * Create a fingerprint using the SHA-256 algorithm with length 24 bytes.
+	 * @param key     The key to use for the first digest
+	 * @param message The message to use for the second digest
+	 * @return The fingerprint of the message
+	 * @throws NoSuchAlgorithmException
+	 */
+	private static byte[] doFingerPrintSHA256(final byte[] key, final byte[] message) throws NoSuchAlgorithmException {
+		// Build k1, k2 (64 bytes each)
+		byte[] k1 = new byte[64];
+		byte[] k2 = new byte[64];
 
-public static byte[] getFingerPrintSHA256(byte[] key, byte[] message) {
-    if ((AsnObject.debug > 5) && (key.length != 32))
-    {
-        System.out.println("SHA256 key length wrong");
-    }
-    return doFingerPrintSHA256(key, message);
-}
+		// 0x36, 0x5C for iPad/oPad in HMAC
+		for (int i = 0; i < 64; i++) {
+			byte theByte = (i < key.length) ? key[i] : 0;
+			k1[i] = (byte) ((theByte & 0xFF) ^ 0x36);
+			k2[i] = (byte) ((theByte & 0xFF) ^ 0x5C);
+		}
 
-private static byte[] doFingerPrintSHA256(byte[] key, byte[] message) {
-	 byte[] k1 = new byte[64];
-	    byte[] k2 = new byte[64];
+		// Inner digest: SHA256(k1 || message)
+		MessageDigest digest1 = MessageDigest.getInstance(SHA256_ALGORITHM);
+		digest1.update(k1);
+		digest1.update(message);
+		byte[] innerHash = digest1.digest();
 
-	    byte z1 = (byte) (0 ^ 0x36);
-	    byte z2 = (byte) (0 ^ 0x5c);
-	    int kl = key.length;
-	    int i = 0;
-	    while (i < kl)
-	    {
-	        k1[i] = (byte) (ifb(key[i]) ^ 0x36);
-	        k2[i] = (byte) (ifb(key[i]) ^ 0x5c);
-	        i++;
-	    }
-	    while (i < 64)
-	    {
-	        k1[i] = z1;
-	        k2[i] = z2;
-	        i++;
-	    }
+		// Outer digest: SHA256(k2 || innerHash)
+		MessageDigest digest2 = MessageDigest.getInstance(SHA256_ALGORITHM);
+		digest2.update(k2);
+		digest2.update(innerHash);
+		byte[] fullHmac = digest2.digest();
 
-	    byte[] interm;
-	    GeneralDigest digest1 = new SHA256Digest();
-	    digest1.reset();
-	    digest1.update(k1, 0, k1.length);
-	    digest1.update(message, 0, message.length);
-	    interm = new byte[digest1.getDigestSize()];
-	    digest1.doFinal(interm, 0);
-
-	    byte[] rettmp;
-	    GeneralDigest digest2 = new SHA256Digest();
-	    digest2.reset();
-	    digest2.update(k2, 0, k2.length);
-	    digest2.update(interm, 0, interm.length);
-	    rettmp = new byte[digest2.getDigestSize()];
-	    digest2.doFinal(rettmp, 0);
-
-	    // Truncate output to 24 bytes for HMAC-SHA-256
-	    byte[] ret = new byte[24];
-	    System.arraycopy(rettmp, 0, ret, 0, 24);
-	    return ret;
-}
+		// Truncate to 24 bytes for usmHMAC192SHA256AuthProtocol
+		byte[] ret = new byte[24];
+		System.arraycopy(fullHmac, 0, ret, 0, 24);
+		return ret;
+	}
 
 }

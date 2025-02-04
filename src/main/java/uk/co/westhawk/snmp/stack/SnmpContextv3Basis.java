@@ -372,15 +372,17 @@ byte[] getAuthenticationPasswordKeySHA1()
     return userAuthKeySHA1;
 }
 
-byte[] getAuthenticationPasswordKeySHA256()
-{
-    if (userAuthKeySHA256 == null)
-    {
-    	userAuthKeySHA256 = SnmpUtilities.passwordToKeySHA256(userAuthenticationPassword);
-    }
-    return userAuthKeySHA256;
-}
-
+	/**
+	 * Returns the authentication password key for SHA256.
+	 * 
+	 * @return the authentication password key for SHA256
+	 */
+	byte[] getAuthenticationPasswordKeySHA256() {
+		if (userAuthKeySHA256 == null) {
+			userAuthKeySHA256 = SnmpUtilities.passwordToKeySHA256(userAuthenticationPassword);
+		}
+		return userAuthKeySHA256;
+	}
 
 byte[] getPrivacyPasswordKeyMD5()
 {
@@ -400,12 +402,26 @@ byte[] getPrivacyPasswordKeySHA1()
     return userPrivKeySHA1;
 }
 
-public byte[] getPrivacyPasswordKeySHA256() {
-	if (userPrivKeySHA256 == null) {
-		userPrivKeySHA256 = SnmpUtilities.passwordToKeySHA256(userPrivacyPassword);
+	/**
+	 * Returns the privacy password key for SHA256.
+	 * 
+	 * @return the privacy password key for SHA256
+	 */
+	byte[] getPrivacyPasswordKeySHA256() {
+		if (userPrivKeySHA256 == null) {
+			userPrivKeySHA256 = SnmpUtilities.passwordToKeySHA256(userPrivacyPassword);
+		}
+		return userPrivKeySHA256;
 	}
-	return userPrivKeySHA256;
-}
+
+	/**
+	 * Whether the authentication protocol is SHA256 or not
+	 * 
+	 * @return true if the authentication protocol is SHA256
+	 */
+	public boolean isSHA256() {
+		return authenticationProtocol == SHA256_PROTOCOL;
+	}
 
 /**
  * Returns if privacy is used or not.

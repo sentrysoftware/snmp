@@ -579,7 +579,7 @@ public boolean waitForSelf()
 {
     // Add an extra second to the waiting. This gives the PDU a chance
     // to handle the timeout correctly before this thread wakes up.
-    long del = 10000000;
+    long del = 1000;
     for (int i=0; i< retry_intervals.length; i++)
     {
         del += retry_intervals[i];
