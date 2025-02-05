@@ -49,6 +49,7 @@ public class SnmpClient {
 	public static final int SNMP_V3 = 3;
 	public static final String SNMP_AUTH_MD5 = "MD5";
 	public static final String SNMP_AUTH_SHA = "SHA";
+	public static final String SNMP_AUTH_SHA256 = "SHA256";
 	public static final String SNMP_PRIVACY_DES = "DES";
 	public static final String SNMP_PRIVACY_AES = "AES";
 	public static final String SNMP_NONE = "None";
@@ -130,7 +131,7 @@ public class SnmpClient {
 		if (version == SNMP_V3) {
 			if (authType != null) {
 				if (!authType.isEmpty()) {
-					if (!authType.equals(SNMP_AUTH_MD5) && !authType.equals(SNMP_AUTH_SHA)) {
+					if (!authType.equals(SNMP_AUTH_MD5) && !authType.equals(SNMP_AUTH_SHA) && !authType.equals(SNMP_AUTH_SHA256)) {
 						throw new IllegalArgumentException("Invalid authentication method '" + authType + "' (must be either '" + SNMP_AUTH_MD5 + "' or '" + SNMP_AUTH_SHA + "' or empty)");
 					}
 				}
@@ -178,12 +179,12 @@ public class SnmpClient {
 			// Verify and translate the authentication type
 			if (authType == null || authUsername == null || authPassword == null) {
 				authenticate = false;
-				authProtocolCode = 4;
+				authProtocolCode = 5;
 				authPassword = "";
 			}
 			else if (authType.isEmpty() || authUsername.isEmpty() || authPassword.isEmpty()) {
 				authenticate = false;
-				authProtocolCode = 4;
+				authProtocolCode = 5;
 				authPassword = "";
 			}
 			else if (authType.equals(SNMP_AUTH_MD5)) {
@@ -193,6 +194,10 @@ public class SnmpClient {
 			else if (authType.equals(SNMP_AUTH_SHA)) {
 				authenticate = true;
 				authProtocolCode = SnmpContextv3Face.SHA1_PROTOCOL;
+			}
+			else if (authType.equals(SNMP_AUTH_SHA256)) {
+				authenticate = true;
+				authProtocolCode = SnmpContextv3Face.SHA256_PROTOCOL;
 			}
 
 			// Verify the privacy thing

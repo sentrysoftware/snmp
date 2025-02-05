@@ -123,8 +123,14 @@ public interface SnmpContextv3Face extends SnmpContextBasisFace
         "MD5",
         "SHA1",
         "DES",
-        "AES"
+        "AES",
+        "SHA256",
     };
+
+	/**
+	 * The SHA-256 protocol type.
+	 */
+	public static final int SHA256_PROTOCOL = 4;
 
 /**
  * Returns the username.

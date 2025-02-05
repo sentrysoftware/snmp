@@ -1,3 +1,4 @@
+package uk.co.westhawk.snmp.stack;
 // NAME
 //      $RCSfile: AsnDecoderv3.java,v $
 // DESCRIPTION
@@ -38,8 +39,6 @@
  * author <a href="mailto:snmp@westhawk.co.uk">Tim Panton</a>
  */
 
-package uk.co.westhawk.snmp.stack;
-
 /*-
  * ╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲
  * SNMP Java Client
@@ -62,9 +61,10 @@ package uk.co.westhawk.snmp.stack;
  * ╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱
  */
 
-import uk.co.westhawk.snmp.util.*;
-import java.io.*;
-import java.util.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import uk.co.westhawk.snmp.util.SnmpUtilities;
 
 /**
  * This class contains the v3 specific methods to decode bytes into a Pdu.
@@ -151,280 +151,240 @@ throws IOException, DecodingException
 }
 
 
-/**
- * Processes the SNMP v3 AsnSequence.
- * See section 3.2 of <a href="http://www.ietf.org/rfc/rfc3414.txt">SNMP-USER-BASED-SM-MIB</a>.
- */
-AsnPduSequence processSNMPv3(SnmpContextv3Basis context, AsnSequence asnTopSeq, byte[] message, boolean amIAuthoritative)
-throws IOException, DecodingException
-{
-    AsnPduSequence pduSeq = null;
-
-    // if not correct, I'll just skip a lot of tests.
-    boolean isCorrect = asnTopSeq.isCorrect;
-
-    AsnSequence asnHeaderData = getAsnHeaderData(asnTopSeq);
-    //int msgId = ((AsnInteger)asnHeaderData.getObj(0)).getValue();
-    //int maxSize = ((AsnInteger)asnHeaderData.getObj(1)).getValue();
-    byte [] msgFlags = ((AsnOctets)asnHeaderData.getObj(2)).getBytes();
-    boolean isUseAuthentication = isUseAuthentication(msgFlags[0]);
-    boolean isUsePrivacy = isUsePrivacy(msgFlags[0]);
-
-    AsnOctets asnSecurityParameters = (AsnOctets)asnTopSeq.getObj(2);
-    AsnSequence usmObject = decodeUSM(asnSecurityParameters);
-
-    byte [] engineIdBytes = ((AsnOctets)usmObject.getObj(0)).getBytes();
-    String engineId = SnmpUtilities.toHexString(engineIdBytes);
-    int boots = ((AsnInteger)usmObject.getObj(1)).getValue();
-    int time = ((AsnInteger)usmObject.getObj(2)).getValue();
-    String userName = ((AsnOctets)usmObject.getObj(3)).getValue();
-    AsnOctets realFingerPrintObject = (AsnOctets)usmObject.getObj(4);
-    byte [] realFingerPrint = realFingerPrintObject.getBytes();
-    byte [] salt = ((AsnOctets)usmObject.getObj(5)).getBytes();
-
-    TimeWindow tWindow = TimeWindow.getCurrent();
-    if (amIAuthoritative == false)
-    {
-        /* engineId should not be empty, however net-snmp 5.3.0.1 has a
-         * bug (1427410) in their trapsess; it sends an empty engineId
-         */
-        if (engineId.length() > 0 
-                &&
-            tWindow.isEngineIdOK(context.getReceivedFromHostAddress(),
-            context.getPort(), engineId) == false)
-        {
-            String msg = "Received engine Id ('" + engineId + "') is not correct.";
-            msg += " amIAuthoritative == false";
-            throw new DecodingException(msg);
-        }
-        else
-        {
-            // This should only happen once, if for some reason the sendto
-            // and receivedfrom addresses are different. 
-            // It is a hack, but it needs to seem like the 'sendToHostAddress' 
-            // has been discovered, else any other request sent to this
-            // address will try to do another discovery and the process
-            // starts again.
-            String sendToHostAddress = context.getSendToHostAddress();
-            String receivedFromHostAddress = context.getReceivedFromHostAddress();
-            if (sendToHostAddress.equals(receivedFromHostAddress) == false)
-            {
-                String storedEngineId;
-                storedEngineId = tWindow.getSnmpEngineId(sendToHostAddress, context.getPort()); 
-                if (storedEngineId == null)
-                {
-                    tWindow.setSnmpEngineId(sendToHostAddress, context.getPort(), "00");
-                }
-            }
-        }
-    }
-    else
-    {
-        // amIAuthoritative == true
-        // Section 3.2 rfc
-        // engineId of length '0' -> discovery.
-        if (engineId.length() > 0 
-                &&
-            tWindow.isEngineIdOK(context.getUsmAgent().MYFAKEHOSTNAME,
-                context.getPort(), engineId) == false)
-        {
-            String msg = "Received engine Id ('" + engineId + "') is not correct.";
-            msg += " amIAuthoritative == true";
-            throw new DecodingException(msg);
-        }
-    }
-
-    if (userName.equals(context.getUserName()) == false)
-    {
-        String msg = "Received userName ('" + userName + "') is not correct";
-        throw new DecodingException(msg);
-    }
-
-    // I'm not really supposed to encrypt before checking and doing
-    // authentication, but I would like to use the pduSeq
-    // So, I'll encrypt and save the possible exception.
-    DecodingException encryptionDecodingException = null;
-    IOException encryptionIOException = null;
-    try
-    {
-        AsnObject asnScopedObject = asnTopSeq.getObj(3);
-        AsnSequence asnPlainScopedPdu = null;
-        if (isUsePrivacy == true)
-        {
-            // if decryption was used, the asnScopedObject would be AsnOctets
-            byte[] privKey = null;
-            int prot = context.getAuthenticationProtocol();
-            if (prot == context.MD5_PROTOCOL)
-            {
-                byte[] passwKey = context.getPrivacyPasswordKeyMD5();
-                privKey = SnmpUtilities.getLocalizedKeyMD5(passwKey, engineId);
-            }
-            else
-            {
-                byte[] passwKey = context.getPrivacyPasswordKeySHA1();
-                privKey = SnmpUtilities.getLocalizedKeySHA1(passwKey, engineId);
-            }
-
-            AsnOctets asnEncryptedScopedPdu = (AsnOctets)asnScopedObject;
-            byte[] encryptedText = asnEncryptedScopedPdu.getBytes();
-
-            byte[] plainText = null;
-            int pprot = context.getPrivacyProtocol();
-            if (pprot == context.AES_ENCRYPT) 
-            {
-                plainText = SnmpUtilities.AESdecrypt(encryptedText,
-                    privKey, boots, time, salt);
-            }
-            else
-            {
-                plainText = SnmpUtilities.DESdecrypt(encryptedText,
-                    salt, privKey);
-            }
- 
-            if (AsnObject.debug > 10)
-            {
-                System.out.println("Encrypted PDU: ");
-                System.out.println("Decoding with : "+context.ProtocolNames[pprot]);
-            }
-
-            ByteArrayInputStream plainIn = new ByteArrayInputStream(plainText);
-            asnPlainScopedPdu = getAsnSequence(plainIn);
-        }
-        else
-        {
-            asnPlainScopedPdu = (AsnSequence)asnScopedObject;
-        }
-
-        byte [] contextId = ((AsnOctets)asnPlainScopedPdu.getObj(0)).getBytes();
-        String contextName = ((AsnOctets)asnPlainScopedPdu.getObj(1)).getValue();
-        pduSeq = (AsnPduSequence) asnPlainScopedPdu.findPdu();
-    }
-    catch (DecodingException exc)
-    {
-        encryptionDecodingException = exc;
-    }
-    catch (IOException exc)
-    {
-        encryptionIOException = exc;
-    }
-    if (pduSeq != null && engineId.length() == 0)
-    {
-        pduSeq.setSnmpv3Discovery(true);
-    }
-
-    boolean userIsUsingAuthentication = context.isUseAuthentication();
-    if (isCorrect == true && (isUseAuthentication != userIsUsingAuthentication))
-    {
-        String msg = "User " + userName + " does ";
-        if (userIsUsingAuthentication == false)
-        {
-            msg += "not ";
-        }
-        msg += "support authentication, but received message ";
-
-        if (isUseAuthentication)
-        {
-            msg += "with authentication.";
-        }
-        else
-        {
-            msg += "without authentication";
-            msg += getUsmStats(pduSeq);
-        }
-        throw new DecodingException(msg);
-    }
-
-    boolean isAuthentic = false;
-    if (isCorrect == true && isUseAuthentication == true)
-    {
-        int fpPos = realFingerPrintObject.getContentsPos();
-        if (AsnObject.debug > 10)
-        {
-            int fpLength = realFingerPrintObject.getContentsLength();
-            String str = "Pos finger print = " + fpPos
-                + ", len = " + fpLength;
-            SnmpUtilities.dumpBytes(str, realFingerPrint);
-        }
-
-        byte[] calcFingerPrint = null;
-        // Replace the real finger print with the dummy finger print
-        System.arraycopy(AsnEncoderv3.dummyFingerPrint, 0, 
-              message, fpPos, realFingerPrint.length);
-        int prot = context.getAuthenticationProtocol();
-        if (prot == context.MD5_PROTOCOL)
-        {
-            byte[] passwKey = context.getAuthenticationPasswordKeyMD5();
-            byte[] authkey = SnmpUtilities.getLocalizedKeyMD5(passwKey,
-                  engineId);
-            calcFingerPrint = SnmpUtilities.getFingerPrintMD5(authkey,
-                  message);
-        }
-        else
-        {
-            byte[] passwKey = context.getAuthenticationPasswordKeySHA1();
-            byte[] authkey = SnmpUtilities.getLocalizedKeySHA1(passwKey,
-                  engineId);
-            calcFingerPrint = SnmpUtilities.getFingerPrintSHA1(authkey,
-                  message);
-        }
-
-        if (SnmpUtilities.areBytesEqual(realFingerPrint, calcFingerPrint) == false)
-        {
-            String msg = "Authentication comparison failed";
-            throw new DecodingException(msg);
-        }
-        else
-        {
-            if (pduSeq != null && boots == 0 && time == 0)
-            {
-                pduSeq.setSnmpv3Discovery(true);
-            }
-            if (tWindow.isOutsideTimeWindow(engineId, boots, time))
-            {
-                String msg = "Message is outside time window";
-                throw new DecodingException(msg);
-            }
-            isAuthentic = true;
-        }
-    }
-    tWindow.updateTimeWindow(engineId, boots, time, isAuthentic);
-
-    boolean userIsUsingPrivacy = context.isUsePrivacy();
-    if (isCorrect == true && (isUsePrivacy != userIsUsingPrivacy))
-    {
-        String msg = "User " + userName + " does ";
-        if (userIsUsingPrivacy == false)
-        {
-            msg += "not ";
-        }
-        msg += "support privacy, but received message ";
-        if (isUsePrivacy)
-        {
-            msg += "with privacy.";
-        }
-        else
-        {
-            msg += "without privacy";
-            msg += getUsmStats(pduSeq);
-        }
-        throw new DecodingException(msg);
-    }
-
-    if (encryptionDecodingException != null)
-    {
-        throw encryptionDecodingException;
-    }
-    if (encryptionIOException != null)
-    {
-        throw encryptionIOException;
-    }
-
-    if (pduSeq != null && isCorrect == false)
-    {
-        pduSeq.isCorrect = false;
-    }
-    return pduSeq;
-}
+	/**
+	 * Processes the SNMP v3 AsnSequence. See section 3.2 of
+	 * <a href="http://www.ietf.org/rfc/rfc3414.txt">SNMP-USER-BASED-SM-MIB</a>.<br>
+	 * See <a href="http://www.ietf.org/rfc/rfc7630.txt">HMAC-SHA-2 Authentication
+	 * Protocols</a>.
+	 * 
+	 * @param context          The SnmpContextv3Basis instance context
+	 * @param asnTopSeq        The AsnSequence
+	 * @param message          The byte array of the message
+	 * @param amIAuthoritative boolean to indicate if we are authoritative
+	 * @return The AsnPduSequence or null
+	 */
+	AsnPduSequence processSNMPv3(SnmpContextv3Basis context, AsnSequence asnTopSeq, byte[] message,
+			boolean amIAuthoritative) throws IOException, DecodingException {
+		AsnPduSequence pduSeq = null;
+	
+		// if not correct, I'll just skip a lot of tests.
+		boolean isCorrect = asnTopSeq.isCorrect;
+	
+		AsnSequence asnHeaderData = getAsnHeaderData(asnTopSeq);
+		// int msgId = ((AsnInteger)asnHeaderData.getObj(0)).getValue();
+		// int maxSize = ((AsnInteger)asnHeaderData.getObj(1)).getValue();
+		byte[] msgFlags = ((AsnOctets) asnHeaderData.getObj(2)).getBytes();
+		boolean isUseAuthentication = isUseAuthentication(msgFlags[0]);
+		boolean isUsePrivacy = isUsePrivacy(msgFlags[0]);
+	
+		AsnOctets asnSecurityParameters = (AsnOctets) asnTopSeq.getObj(2);
+		AsnSequence usmObject = decodeUSM(asnSecurityParameters);
+	
+		byte[] engineIdBytes = ((AsnOctets) usmObject.getObj(0)).getBytes();
+		String engineId = SnmpUtilities.toHexString(engineIdBytes);
+		int boots = ((AsnInteger) usmObject.getObj(1)).getValue();
+		int time = ((AsnInteger) usmObject.getObj(2)).getValue();
+		String userName = ((AsnOctets) usmObject.getObj(3)).getValue();
+		AsnOctets realFingerPrintObject = (AsnOctets) usmObject.getObj(4);
+		byte[] realFingerPrint = realFingerPrintObject.getBytes();
+		byte[] salt = ((AsnOctets) usmObject.getObj(5)).getBytes();
+	
+		TimeWindow tWindow = TimeWindow.getCurrent();
+		if (amIAuthoritative == false) {
+			/*
+			 * engineId should not be empty, however net-snmp 5.3.0.1 has a bug (1427410) in
+			 * their trapsess; it sends an empty engineId
+			 */
+			if (engineId.length() > 0
+					&& tWindow.isEngineIdOK(context.getReceivedFromHostAddress(), context.getPort(), engineId) == false) {
+				String msg = "Received engine Id ('" + engineId + "') is not correct.";
+				msg += " amIAuthoritative == false";
+				throw new DecodingException(msg);
+			} else {
+				// This should only happen once, if for some reason the sendto
+				// and receivedfrom addresses are different.
+				// It is a hack, but it needs to seem like the 'sendToHostAddress'
+				// has been discovered, else any other request sent to this
+				// address will try to do another discovery and the process
+				// starts again.
+				String sendToHostAddress = context.getSendToHostAddress();
+				String receivedFromHostAddress = context.getReceivedFromHostAddress();
+				if (sendToHostAddress.equals(receivedFromHostAddress) == false) {
+					String storedEngineId;
+					storedEngineId = tWindow.getSnmpEngineId(sendToHostAddress, context.getPort());
+					if (storedEngineId == null) {
+						tWindow.setSnmpEngineId(sendToHostAddress, context.getPort(), "00");
+					}
+				}
+			}
+		} else {
+			// amIAuthoritative == true
+			// Section 3.2 rfc
+			// engineId of length '0' -> discovery.
+			if (engineId.length() > 0
+					&& tWindow.isEngineIdOK(context.getUsmAgent().MYFAKEHOSTNAME, context.getPort(), engineId) == false) {
+				String msg = "Received engine Id ('" + engineId + "') is not correct.";
+				msg += " amIAuthoritative == true";
+				throw new DecodingException(msg);
+			}
+		}
+	
+		if (userName.equals(context.getUserName()) == false) {
+			String msg = "Received userName ('" + userName + "') is not correct";
+			throw new DecodingException(msg);
+		}
+	
+		// I'm not really supposed to encrypt before checking and doing
+		// authentication, but I would like to use the pduSeq
+		// So, I'll encrypt and save the possible exception.
+		DecodingException encryptionDecodingException = null;
+		IOException encryptionIOException = null;
+		int authenticationProtocol = context.getAuthenticationProtocol();
+		try {
+			AsnObject asnScopedObject = asnTopSeq.getObj(3);
+			AsnSequence asnPlainScopedPdu = null;
+			if (isUsePrivacy == true) {
+				// if decryption was used, the asnScopedObject would be AsnOctets
+				byte[] privKey = null;
+				if (authenticationProtocol == context.MD5_PROTOCOL) {
+					byte[] passwKey = context.getPrivacyPasswordKeyMD5();
+					privKey = SnmpUtilities.getLocalizedKeyMD5(passwKey, engineId);
+				} else if (authenticationProtocol == context.SHA1_PROTOCOL) {
+					byte[] passwKey = context.getPrivacyPasswordKeySHA1();
+					privKey = SnmpUtilities.getLocalizedKeySHA1(passwKey, engineId);
+				} else if (context.isSHA256()) {
+					byte[] passwKey = context.getPrivacyPasswordKeySHA256();
+					privKey = SnmpUtilities.getLocalizedKeySHA256(passwKey, engineId);
+				}
+	
+				AsnOctets asnEncryptedScopedPdu = (AsnOctets) asnScopedObject;
+				byte[] encryptedText = asnEncryptedScopedPdu.getBytes();
+	
+				byte[] plainText = null;
+				int pprot = context.getPrivacyProtocol();
+				if (pprot == context.AES_ENCRYPT) {
+					plainText = SnmpUtilities.AESdecrypt(encryptedText, privKey, boots, time, salt);
+				} else {
+					plainText = SnmpUtilities.DESdecrypt(encryptedText, salt, privKey);
+				}
+	
+				if (AsnObject.debug > 10) {
+					System.out.println("Encrypted PDU: ");
+					System.out.println("Decoding with : " + context.ProtocolNames[pprot]);
+				}
+	
+				ByteArrayInputStream plainIn = new ByteArrayInputStream(plainText);
+				asnPlainScopedPdu = getAsnSequence(plainIn);
+			} else {
+				asnPlainScopedPdu = (AsnSequence) asnScopedObject;
+			}
+	
+			byte[] contextId = ((AsnOctets) asnPlainScopedPdu.getObj(0)).getBytes();
+			String contextName = ((AsnOctets) asnPlainScopedPdu.getObj(1)).getValue();
+			pduSeq = (AsnPduSequence) asnPlainScopedPdu.findPdu();
+		} catch (DecodingException exc) {
+			encryptionDecodingException = exc;
+		} catch (IOException exc) {
+			encryptionIOException = exc;
+		}
+		if (pduSeq != null && engineId.length() == 0) {
+			pduSeq.setSnmpv3Discovery(true);
+		}
+	
+		boolean userIsUsingAuthentication = context.isUseAuthentication();
+		if (isCorrect == true && (isUseAuthentication != userIsUsingAuthentication)) {
+			String msg = "User " + userName + " does ";
+			if (userIsUsingAuthentication == false) {
+				msg += "not ";
+			}
+			msg += "support authentication, but received message ";
+	
+			if (isUseAuthentication) {
+				msg += "with authentication.";
+			} else {
+				msg += "without authentication";
+				msg += getUsmStats(pduSeq);
+			}
+			throw new DecodingException(msg);
+		}
+	
+		boolean isAuthentic = false;
+		if (isCorrect == true && isUseAuthentication == true) {
+			int fpPos = realFingerPrintObject.getContentsPos();
+			if (AsnObject.debug > 10) {
+				int fpLength = realFingerPrintObject.getContentsLength();
+				String str = "Pos finger print = " + fpPos + ", len = " + fpLength;
+				SnmpUtilities.dumpBytes(str, realFingerPrint);
+			}
+	
+			byte[] calcFingerPrint = null;
+			// Replace the real finger print with the dummy finger print
+			byte[] dummyFingerPrint;
+			if (context.isSHA256()) {
+				dummyFingerPrint = AsnEncoderv3.dummySHA256FingerPrint;
+			} else {
+				dummyFingerPrint = AsnEncoderv3.dummyFingerPrint;
+			}
+			System.arraycopy(dummyFingerPrint, 0, message, fpPos, realFingerPrint.length);
+	
+			if (authenticationProtocol == context.MD5_PROTOCOL) {
+				byte[] passwKey = context.getAuthenticationPasswordKeyMD5();
+				byte[] authkey = SnmpUtilities.getLocalizedKeyMD5(passwKey, engineId);
+				calcFingerPrint = SnmpUtilities.getFingerPrintMD5(authkey, message);
+			} else if (authenticationProtocol == context.SHA1_PROTOCOL) {
+				byte[] passwKey = context.getAuthenticationPasswordKeySHA1();
+				byte[] authkey = SnmpUtilities.getLocalizedKeySHA1(passwKey, engineId);
+				calcFingerPrint = SnmpUtilities.getFingerPrintSHA1(authkey, message);
+			} else if (context.isSHA256()) {
+				byte[] passwKey = context.getAuthenticationPasswordKeySHA256();
+				byte[] authkey = SnmpUtilities.getLocalizedKeySHA256(passwKey, engineId);
+				calcFingerPrint = SnmpUtilities.getFingerPrintSHA256(authkey, message);
+			}
+	
+			if (SnmpUtilities.areBytesEqual(realFingerPrint, calcFingerPrint) == false) {
+				String msg = "Authentication comparison failed";
+				throw new DecodingException(msg);
+			} else {
+				if (pduSeq != null && boots == 0 && time == 0) {
+					pduSeq.setSnmpv3Discovery(true);
+				}
+				if (tWindow.isOutsideTimeWindow(engineId, boots, time)) {
+					String msg = "Message is outside time window";
+					throw new DecodingException(msg);
+				}
+				isAuthentic = true;
+			}
+		}
+		tWindow.updateTimeWindow(engineId, boots, time, isAuthentic);
+	
+		boolean userIsUsingPrivacy = context.isUsePrivacy();
+		if (isCorrect == true && (isUsePrivacy != userIsUsingPrivacy)) {
+			String msg = "User " + userName + " does ";
+			if (userIsUsingPrivacy == false) {
+				msg += "not ";
+			}
+			msg += "support privacy, but received message ";
+			if (isUsePrivacy) {
+				msg += "with privacy.";
+			} else {
+				msg += "without privacy";
+				msg += getUsmStats(pduSeq);
+			}
+			throw new DecodingException(msg);
+		}
+	
+		if (encryptionDecodingException != null) {
+			throw encryptionDecodingException;
+		}
+		if (encryptionIOException != null) {
+			throw encryptionIOException;
+		}
+	
+		if (pduSeq != null && isCorrect == false) {
+			pduSeq.isCorrect = false;
+		}
+		return pduSeq;
+	}
 
 
 private boolean isUseAuthentication(byte msgFlags)
