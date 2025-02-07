@@ -74,6 +74,18 @@ public class SnmpUtilities extends Object
 	 * The SHA-256 algorithm name.
 	 */
 	private static final String SHA256_ALGORITHM = "SHA-256";
+    /**
+     * The SHA-512 algorithm name.
+     */
+    private static final String SHA512_ALGORITHM = "SHA-512";
+    /**
+     * The SHA-224 algorithm name.
+     */
+    private static final String SHA224_ALGORITHM = "SHA-224";
+    /**
+     * The SHA-384 algorithm name.
+     */
+    private static final String SHA384_ALGORITHM = "SHA-384";
 
 	private static final String     version_id =
         "@(#)$Id: SnmpUtilities.java,v 1.27 2009/03/05 12:57:57 birgita Exp $ Copyright Westhawk Ltd";
@@ -1166,7 +1178,168 @@ final static void setBytesFromLong(byte[] ret, long value, int offs)
 		return ret;
 	}
 
-	/**
+    /**
+     * Converts the user's passphrase into a 48-byte SHA-384 key by hashing one
+     * megabyte of repeated passphrase data. (Based on the MD5/SHA1 approach in RFC
+     * 3414, extended for SHA-384.)
+     *
+     * @param userPrivacyPassword The user's passphrase
+     */
+    public static byte[] passwordToKeySHA384(String userPrivacyPassword) {
+        byte[] ret;
+        byte[] passwordBuf = new byte[128];  // SHA-384 uses 128-byte buffer (for 48-byte key)
+        int pl = userPrivacyPassword.length();
+        byte[] pass = new byte[pl];
+
+        // Convert passphrase string to bytes
+        for (int i = 0; i < pl; i++) {
+            pass[i] = (byte) (0xFF & userPrivacyPassword.charAt(i));
+        }
+
+        int count = 0;
+        int passwordIndex = 0;
+
+        try {
+            MessageDigest sha = MessageDigest.getInstance(SHA384_ALGORITHM);
+
+            // Hash 1 MB of repeated passphrase blocks (128 bytes at a time for SHA-384)
+            while (count < ONEMEG) {
+                int cp = 0;
+                int i = 0;
+                while (i < 128) {
+                    int pim = passwordIndex % pl;
+                    int len = 128 - cp;
+                    int pr = pl - pim;
+                    if (len > pr) {
+                        len = pr;
+                    }
+                    System.arraycopy(pass, pim, passwordBuf, cp, len);
+                    i += len;
+                    cp += len;
+                    passwordIndex += len;
+                }
+                sha.update(passwordBuf, 0, passwordBuf.length);
+                count += 128;
+            }
+
+            // Finalize the 48-byte key
+            ret = sha.digest();
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-384 not supported, failed to generate key", e);
+        }
+
+        return ret;
+    }
+
+
+    /**
+     * Converts the user's passphrase into a 28-byte SHA-224 key by hashing one
+     * megabyte of repeated passphrase data. (Based on the MD5/SHA1 approach in RFC
+     * 3414, extended for SHA-224.)
+     *
+     * @param userPrivacyPassword The user's passphrase
+     */
+    public static byte[] passwordToKeySHA224(String userPrivacyPassword) {
+        byte[] ret; // Final key is 28 bytes (224 bits) for SHA-224
+        byte[] passwordBuf = new byte[64]; // 64-byte buffer, aligns with SHA-224's block size
+        int pl = userPrivacyPassword.length();
+        byte[] pass = new byte[pl];
+
+        // Convert passphrase string to bytes
+        for (int i = 0; i < pl; i++) {
+            pass[i] = (byte) (0xFF & userPrivacyPassword.charAt(i));
+        }
+
+        int count = 0;
+        int passwordIndex = 0;
+
+        try {
+            MessageDigest sha = MessageDigest.getInstance(SHA224_ALGORITHM);
+
+            // Hash 1 MB of repeated passphrase blocks (64 bytes at a time)
+            while (count < ONEMEG) {
+                int cp = 0;
+                int i = 0;
+                while (i < 64) { // Process in 64-byte chunks
+                    int pim = passwordIndex % pl;
+                    int len = 64 - cp;
+                    int pr = pl - pim;
+                    if (len > pr) {
+                        len = pr;
+                    }
+                    System.arraycopy(pass, pim, passwordBuf, cp, len);
+                    i += len;
+                    cp += len;
+                    passwordIndex += len;
+                }
+                sha.update(passwordBuf, 0, passwordBuf.length); // Update the hash with the buffer
+                count += 64; // Update count for 64-byte block
+            }
+
+            // Finalize the 28-byte key (SHA-224 produces 28 bytes)
+            ret = sha.digest();
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-224 not supported, failed to generate key", e);
+        }
+
+        return ret;
+    }
+
+    /**
+     * Converts the user's passphrase into a 64-byte SHA-512 key by hashing one
+     * megabyte of repeated passphrase data. (Based on the MD5/SHA1 approach in RFC
+     * 3414, extended for SHA-512.)
+     *
+     * @param userPrivacyPassword The user's passphrase
+     * @return A 64-byte derived key
+     */
+    public static byte[] passwordToKeySHA512(String userPrivacyPassword) {
+        byte[] ret;
+        byte[] passwordBuf = new byte[64];
+        int pl = userPrivacyPassword.length();
+        byte[] pass = new byte[pl];
+
+        // Convert passphrase string to bytes
+        for (int i = 0; i < pl; i++) {
+            pass[i] = (byte) (0xFF & userPrivacyPassword.charAt(i));
+        }
+
+        int count = 0;
+        int passwordIndex = 0;
+
+        try {
+            MessageDigest sha = MessageDigest.getInstance(SHA512_ALGORITHM);
+
+            // Hash 1 MB of repeated passphrase blocks (64 bytes at a time)
+            while (count < 1024 * 1024) { // 1MB
+                int cp = 0;
+                int i = 0;
+                while (i < 64) {
+                    int pim = passwordIndex % pl;
+                    int len = 64 - cp;
+                    int pr = pl - pim;
+                    if (len > pr) {
+                        len = pr;
+                    }
+                    System.arraycopy(pass, pim, passwordBuf, cp, len);
+                    i += len;
+                    cp += len;
+                    passwordIndex += len;
+                }
+                sha.update(passwordBuf, 0, passwordBuf.length);
+                count += 64;
+            }
+
+            // Finalize the 64-byte key
+            ret = sha.digest();
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-512 not supported, failed to generate key", e);
+        }
+
+        return ret;
+    }
+
+    /**
 	 * Converts the user's password and the SNMP Engine Id to the localized key
 	 * 
 	 * @param passwKey     The password key
@@ -1190,11 +1363,69 @@ final static void setBytesFromLong(byte[] ret, long value, int offs)
 		} catch (NoSuchAlgorithmException e) {
 			throw new IllegalStateException("SHA-256 not supported, failed to generate localized key", e);
 		}
-	
+
 		return ret;
 	}
 
-	/**
+    /**
+     * Converts the user's password and the SNMP Engine Id to the localized key
+     *
+     * @param passwKey     The password key
+     * @param snmpEngineId The SNMP engine Id
+     * @return localized key using the SHA-384 protocol
+     */
+    public static byte[] getLocalizedKeySHA384(final byte[] passwKey, final String snmpEngineId) {
+        byte[] ret = null;
+        byte[] beid = toBytes(snmpEngineId); // Convert engineId (Hex string?) to raw bytes
+
+        if (passwKey == null) {
+            return null;
+        }
+
+        try {
+            final MessageDigest sha = MessageDigest.getInstance(SHA384_ALGORITHM);
+            sha.update(passwKey, 0, passwKey.length);
+            sha.update(beid, 0, beid.length);
+            sha.update(passwKey, 0, passwKey.length);
+            ret = sha.digest(); // 48-byte SHA-384 result
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-384 not supported, failed to generate localized key", e);
+        }
+
+        return ret;
+    }
+
+
+    /**
+     * Converts the user's password and the SNMP Engine Id to the localized key
+     *
+     * @param passwKey     The password key
+     * @param snmpEngineId The SNMP engine Id
+     * @return localized key using the SHA-224 protocol
+     */
+    public static byte[] getLocalizedKeySHA224(final byte[] passwKey, final String snmpEngineId) {
+        byte[] ret = null;
+        byte[] beid = toBytes(snmpEngineId); // Convert engineId (Hex string?) to raw bytes
+
+        if (passwKey == null) {
+            return null;
+        }
+
+        try {
+            final MessageDigest sha = MessageDigest.getInstance(SHA224_ALGORITHM);
+            sha.update(passwKey, 0, passwKey.length);
+            sha.update(beid, 0, beid.length);
+            sha.update(passwKey, 0, passwKey.length);
+            ret = sha.digest(); // 28-byte SHA-224 result
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-224 not supported, failed to generate localized key", e);
+        }
+
+        return ret;
+    }
+
+
+    /**
 	 * Create a fingerprint using the SHA-256 algorithm with length 24 bytes.
 	 * @param key     The key to use for the first digest
 	 * @param message The message to use for the second digest
@@ -1211,7 +1442,108 @@ final static void setBytesFromLong(byte[] ret, long value, int offs)
 		}
 	}
 
-	/**
+    /**
+     * Converts the user's password and the SNMP Engine Id to the localized key
+     * using the SHA-512 protocol.
+     *
+     * @param passwKey     The password key
+     * @param snmpEngineId The SNMP engine Id
+     * @return localized key using the SHA-512 protocol
+     */
+    public static byte[] getLocalizedKeySHA512(final byte[] passwKey, final String snmpEngineId) {
+        byte[] ret = null;
+        byte[] beid = toBytes(snmpEngineId); // Convert engineId (Hex string?) to raw bytes
+
+        if (passwKey == null) {
+            return null;
+        }
+
+        try {
+            final MessageDigest sha = MessageDigest.getInstance(SHA512_ALGORITHM);
+            sha.update(passwKey, 0, passwKey.length);
+            sha.update(beid, 0, beid.length);
+            sha.update(passwKey, 0, passwKey.length);
+            ret = sha.digest(); // 64-byte SHA-512 result
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-512 not supported, failed to generate localized key", e);
+        }
+
+        return ret;
+    }
+
+    /**
+     * Create a fingerprint using the SHA-512 algorithm with length 48 bytes.
+     * @param key     The key to use for the first digest
+     * @param message The message to use for the second digest
+     * @return The fingerprint of the message
+     */
+    public static byte[] getFingerPrintSHA512(final byte[] key, final byte[] message) {
+        if ((AsnObject.debug > 5) && (key.length != 64)) {
+            System.out.println("SHA-512 key length wrong");
+        }
+        try {
+            return doFingerPrintSHA512(key, message);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-512 not supported, failed to generate fingerprint", e);
+        }
+    }
+
+    /**
+     * Create a fingerprint using the SHA-224 algorithm with length 28 bytes for SNMPv3.
+     * @param key     The key to use for the first digest
+     * @param message The message to use for the second digest
+     * @return The fingerprint of the message
+     */
+    public static byte[] getFingerPrintSHA224(final byte[] key, final byte[] message) {
+        if ((AsnObject.debug > 5) && (key.length != 28)) {
+            System.out.println("SHA-224 key length wrong");
+        }
+        try {
+            return doFingerPrintSHA224(key, message);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-224 not supported, failed to generate fingerprint", e);
+        }
+    }
+
+    /**
+     * Create a fingerprint using the SHA-224 algorithm with length 28 bytes for SNMPv3.
+     * @param key     The key to use for the first digest
+     * @param message The message to use for the second digest
+     * @return The fingerprint of the message
+     * @throws NoSuchAlgorithmException
+     */
+    private static byte[] doFingerPrintSHA224(final byte[] key, final byte[] message) throws NoSuchAlgorithmException {
+        // Build k1, k2 (56 bytes each for SHA-224)
+        byte[] k1 = new byte[64];
+        byte[] k2 = new byte[64];
+
+        // 0x36, 0x5C for iPad/oPad in HMAC
+        for (int i = 0; i < 64; i++) {
+            byte theByte = (i < key.length) ? key[i] : 0;
+            k1[i] = (byte) ((theByte & 0xFF) ^ 0x36); // iPad
+            k2[i] = (byte) ((theByte & 0xFF) ^ 0x5C); // oPad
+        }
+
+        // Inner digest: SHA-224(k1 || message)
+        MessageDigest digest1 = MessageDigest.getInstance(SHA224_ALGORITHM);
+        digest1.update(k1);
+        digest1.update(message);
+        byte[] innerHash = digest1.digest();
+
+        // Outer digest: SHA-224(k2 || innerHash)
+        MessageDigest digest2 = MessageDigest.getInstance(SHA224_ALGORITHM);
+        digest2.update(k2);
+        digest2.update(innerHash);
+        byte[] fullHmac = digest2.digest();
+
+        // Return the result as a 28-byte fingerprint (truncated or directly 28 bytes)
+        byte[] ret = new byte[16];
+        System.arraycopy(fullHmac, 0, ret, 0, 16);
+        return ret;
+    }
+
+
+    /**
 	 * Create a fingerprint using the SHA-256 algorithm with length 24 bytes.
 	 * @param key     The key to use for the first digest
 	 * @param message The message to use for the second digest
@@ -1247,5 +1579,98 @@ final static void setBytesFromLong(byte[] ret, long value, int offs)
 		System.arraycopy(fullHmac, 0, ret, 0, 24);
 		return ret;
 	}
+
+    /**
+     * Create a fingerprint using the SHA-384 algorithm with length 36 bytes.
+     * @param key     The key to use for the first digest
+     * @param message The message to use for the second digest
+     * @return The fingerprint of the message
+     */
+    public static byte[] getFingerPrintSHA384(final byte[] key, final byte[] message) {
+        if ((AsnObject.debug > 5) && (key.length != 48)) {
+            System.out.println("SHA384 key length wrong");
+        }
+        try {
+            return doFingerPrintSHA384(key, message);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-384 not supported, failed to generate fingerprint", e);
+        }
+    }
+
+    /**
+     * Create a fingerprint using the SHA-384 algorithm with length 36 bytes.
+     * @param key     The key to use for the first digest
+     * @param message The message to use for the second digest
+     * @return The fingerprint of the message
+     * @throws NoSuchAlgorithmException
+     */
+    private static byte[] doFingerPrintSHA384(final byte[] key, final byte[] message) throws NoSuchAlgorithmException {
+        // Build k1, k2 (128 bytes each for SHA-384 HMAC)
+        byte[] k1 = new byte[128];
+        byte[] k2 = new byte[128];
+
+        // 0x36, 0x5C for iPad/oPad in HMAC
+        for (int i = 0; i < 128; i++) {
+            byte theByte = (i < key.length) ? key[i] : 0;
+            k1[i] = (byte) ((theByte & 0xFF) ^ 0x36);
+            k2[i] = (byte) ((theByte & 0xFF) ^ 0x5C);
+        }
+
+        // Inner digest: SHA384(k1 || message)
+        MessageDigest digest1 = MessageDigest.getInstance(SHA384_ALGORITHM);
+        digest1.update(k1);
+        digest1.update(message);
+        byte[] innerHash = digest1.digest();
+
+        // Outer digest: SHA384(k2 || innerHash)
+        MessageDigest digest2 = MessageDigest.getInstance(SHA384_ALGORITHM);
+        digest2.update(k2);
+        digest2.update(innerHash);
+        byte[] fullHmac = digest2.digest();
+
+        // Truncate to 36 bytes for usmHMAC288SHA384AuthProtocol
+        byte[] ret = new byte[32];
+        System.arraycopy(fullHmac, 0, ret, 0, 32);
+        return ret;
+    }
+
+
+    /**
+     * Create a fingerprint using the SHA-512 algorithm with length 48 bytes.
+     * @param key     The key to use for the first digest
+     * @param message The message to use for the second digest
+     * @return The fingerprint of the message
+     * @throws NoSuchAlgorithmException
+     */
+    private static byte[] doFingerPrintSHA512(final byte[] key, final byte[] message) throws NoSuchAlgorithmException {
+        // Build k1, k2 (128 bytes each for SHA-512)
+        byte[] k1 = new byte[128];
+        byte[] k2 = new byte[128];
+
+        // 0x36, 0x5C for iPad/oPad in HMAC
+        for (int i = 0; i < 128; i++) {
+            byte theByte = (i < key.length) ? key[i] : 0;
+            k1[i] = (byte) ((theByte & 0xFF) ^ 0x36);
+            k2[i] = (byte) ((theByte & 0xFF) ^ 0x5C);
+        }
+
+        // Inner digest: SHA-512(k1 || message)
+        MessageDigest digest1 = MessageDigest.getInstance(SHA512_ALGORITHM);
+        digest1.update(k1);
+        digest1.update(message);
+        byte[] innerHash = digest1.digest();
+
+        // Outer digest: SHA-512(k2 || innerHash)
+        MessageDigest digest2 = MessageDigest.getInstance(SHA512_ALGORITHM);
+        digest2.update(k2);
+        digest2.update(innerHash);
+        byte[] fullHmac = digest2.digest();
+
+        // Truncate to 48 bytes for usmHMAC256SHA384AuthProtocol
+        byte[] ret = new byte[48];
+        System.arraycopy(fullHmac, 0, ret, 0, 48);
+        return ret;
+    }
+
 
 }

@@ -121,6 +121,9 @@ implements SnmpContextv3Face, Cloneable
     protected byte[] userAuthKeyMD5 = null;
     protected byte[] userAuthKeySHA1 = null;
     protected byte[] userAuthKeySHA256 = null;
+	protected byte[] userAuthKeySHA512 = null;
+	protected byte[] userAuthKeySHA224 = null;
+	protected byte[] userAuthKeySHA384 = null;
     protected int authenticationProtocol = MD5_PROTOCOL;
     protected int privacyProtocol = DES_ENCRYPT ;
     protected boolean usePrivacy = false;
@@ -128,6 +131,9 @@ implements SnmpContextv3Face, Cloneable
     protected byte[] userPrivKeyMD5 = null;
     protected byte[] userPrivKeySHA1 = null;
     protected byte[] userPrivKeySHA256 = null;
+	protected byte[] userPrivKeySHA512 = null;
+	protected byte[] userPrivKeySHA224 = null;
+	protected byte[] userPrivKeySHA384 = null;
     protected byte [] contextEngineId = new byte[0];
     protected String contextName = Default_ContextName;
     protected UsmAgent usmAgent = null;
@@ -271,6 +277,9 @@ public void setUserAuthenticationPassword(String newUserAuthPassword)
         userAuthKeyMD5 = null;
         userAuthKeySHA1 = null;
         userAuthKeySHA256 = null;
+		userAuthKeySHA512 = null;
+		userAuthKeySHA224 = null;
+		userAuthKeySHA384 = null;
     }
 }
 
@@ -286,7 +295,9 @@ public void setUserAuthenticationPassword(String newUserAuthPassword)
 public void setAuthenticationProtocol(int protocol)
 throws IllegalArgumentException
 {
-    if (protocol == MD5_PROTOCOL || protocol == SHA1_PROTOCOL || protocol == SHA256_PROTOCOL)
+    if (protocol == MD5_PROTOCOL || protocol == SHA1_PROTOCOL || protocol == SHA256_PROTOCOL ||
+		protocol == SHA512_PROTOCOL || protocol == SHA224_PROTOCOL ||
+	protocol == SHA384_PROTOCOL)
     {
         if (protocol != authenticationProtocol)
         {
@@ -384,6 +395,45 @@ byte[] getAuthenticationPasswordKeySHA1()
 		return userAuthKeySHA256;
 	}
 
+	/**
+	 * Returns the authentication password key for SHA-384.
+	 *
+	 * @return the authentication password key for SHA-384
+	 */
+	byte[] getAuthenticationPasswordKeySHA384() {
+		if (userAuthKeySHA384 == null) {
+			userAuthKeySHA384 = SnmpUtilities.passwordToKeySHA384(userAuthenticationPassword);
+		}
+		return userAuthKeySHA384;
+	}
+
+
+
+	/**
+	 * Returns the authentication password key for SHA-224.
+	 *
+	 * @return the authentication password key for SHA-224
+	 */
+	byte[] getAuthenticationPasswordKeySHA224() {
+		if (userAuthKeySHA224 == null) {
+			userAuthKeySHA224 = SnmpUtilities.passwordToKeySHA224(userAuthenticationPassword);
+		}
+		return userAuthKeySHA224;
+	}
+
+
+	/**
+	 * Returns the authentication password key for SHa512.
+	 *
+	 * @return the authentication password key for SHA512
+	 */
+	byte[] getAuthenticationPasswordKeySHA512() {
+		if (userAuthKeySHA512 == null) {
+			userAuthKeySHA512 = SnmpUtilities.passwordToKeySHA512(userAuthenticationPassword);
+		}
+		return userAuthKeySHA512;
+	}
+
 byte[] getPrivacyPasswordKeyMD5()
 {
     if (userPrivKeyMD5 == null)
@@ -415,12 +465,39 @@ byte[] getPrivacyPasswordKeySHA1()
 	}
 
 	/**
-	 * Whether the authentication protocol is SHA256 or not
-	 * 
-	 * @return true if the authentication protocol is SHA256
+	 * Returns the privacy password key for SHA-224.
+	 *
+	 * @return the privacy password key for SHA-224
 	 */
-	public boolean isSHA256() {
-		return authenticationProtocol == SHA256_PROTOCOL;
+	byte[] getPrivacyPasswordKeySHA224() {
+		if (userPrivKeySHA224 == null) {
+			userPrivKeySHA224 = SnmpUtilities.passwordToKeySHA224(userPrivacyPassword);
+		}
+		return userPrivKeySHA224;
+	}
+
+	/**
+	 * Returns the privacy password key for SHA-384.
+	 *
+	 * @return the privacy password key for SHA-384
+	 */
+	byte[] getPrivacyPasswordKeySHA384() {
+		if (userPrivKeySHA384 == null) {
+			userPrivKeySHA384 = SnmpUtilities.passwordToKeySHA384(userPrivacyPassword);
+		}
+		return userPrivKeySHA384;
+	}
+
+	/**
+	 * Returns the privacy password key for SHA512.
+	 *
+	 * @return the privacy password key for SHA512
+	 */
+	byte[] getPrivacyPasswordKeySHA512() {
+		if (userPrivKeySHA512 == null) {
+			userPrivKeySHA512 = SnmpUtilities.passwordToKeySHA512(userPrivacyPassword);
+		}
+		return userPrivKeySHA512;
 	}
 
 /**
@@ -475,6 +552,9 @@ public void setUserPrivacyPassword(String newUserPrivacyPassword)
         userPrivKeyMD5 = null;
         userPrivKeySHA1 = null;
         userPrivKeySHA256 = null;
+		userPrivKeySHA512 = null;
+		userPrivKeySHA224 = null;
+		userAuthKeySHA384 = null;
     }
 }
 

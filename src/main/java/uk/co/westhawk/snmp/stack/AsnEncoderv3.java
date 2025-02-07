@@ -101,6 +101,36 @@ class AsnEncoderv3 extends AsnEncoderBase
 		)
 		.array();
 
+	// 48 zero octets
+	static byte[] dummySHA512FingerPrint = IntStream
+			.range(0, 48)
+			.collect(() ->
+							ByteBuffer.allocate(48), // supplier
+					(buffer, i) -> buffer.put((byte) 0), // accumulator
+					(b1, b2) -> { } // combiner (empty since we're not parallelizing)
+			)
+			.array();
+
+	// 16 zero octets
+	static byte[] dummySHA224FingerPrint = IntStream
+			.range(0, 16)
+			.collect(() ->
+							ByteBuffer.allocate(16), // supplier
+					(buffer, i) -> buffer.put((byte) 0), // accumulator
+					(b1, b2) -> { } // combiner (empty since we're not parallelizing)
+			)
+			.array();
+
+	// 32 zero octets
+	static byte[] dummySHA384FingerPrint = IntStream
+			.range(0, 32)
+			.collect(() ->
+							ByteBuffer.allocate(32), // supplier
+					(buffer, i) -> buffer.put((byte) 0), // accumulator
+					(b1, b2) -> { } // combiner (empty since we're not parallelizing)
+			)
+			.array();
+
 	/**
 	 * Encode SNMPv3 packet into bytes.
 	 * @param context The SNMP context
@@ -148,11 +178,17 @@ class AsnEncoderv3 extends AsnEncoderBase
 		AsnOctets fingerPrintOct;
 		int authenticationProtocol = context.getAuthenticationProtocol();
 		if (context.isUseAuthentication()) {
-			byte[] dummyFp;
-			if (context.isSHA256()) {
+			byte[] dummyFp = new byte[0];
+			if (authenticationProtocol == context.SHA256_PROTOCOL) {
 				dummyFp = dummySHA256FingerPrint;
-			} else {
+			} else if(authenticationProtocol == context.SHA1_PROTOCOL) {
 				dummyFp = dummyFingerPrint;
+			} else if(authenticationProtocol == context.SHA512_PROTOCOL) {
+				dummyFp = dummySHA512FingerPrint;
+			} else if (authenticationProtocol == context.SHA224_PROTOCOL) {
+				dummyFp = dummySHA224FingerPrint;
+			} else if(authenticationProtocol == context.SHA384_PROTOCOL) {
+				dummyFp = dummySHA384FingerPrint;
 			}
 			fingerPrintOct = new AsnOctets(dummyFp);
 		} else {
@@ -170,9 +206,18 @@ class AsnEncoderv3 extends AsnEncoderBase
 			} else if (authenticationProtocol == context.SHA1_PROTOCOL) {
 				byte[] passwKey = context.getPrivacyPasswordKeySHA1();
 				privKey = SnmpUtilities.getLocalizedKeySHA1(passwKey, node.getSnmpEngineId());
-			} else if (context.isSHA256()) {
+			} else if (authenticationProtocol == context.SHA256_PROTOCOL) {
 				byte[] passwKey = context.getPrivacyPasswordKeySHA256();
 				privKey = SnmpUtilities.getLocalizedKeySHA256(passwKey, node.getSnmpEngineId());
+			} else if (authenticationProtocol == context.SHA512_PROTOCOL) {
+				byte[] passwKey = context.getPrivacyPasswordKeySHA512();
+				privKey = SnmpUtilities.getLocalizedKeySHA512(passwKey, node.getSnmpEngineId());
+			} else if (authenticationProtocol == context.SHA224_PROTOCOL) {
+				byte[] passwKey = context.getPrivacyPasswordKeySHA224();
+				privKey = SnmpUtilities.getLocalizedKeySHA224(passwKey, node.getSnmpEngineId());
+			} else if(authenticationProtocol == context.SHA384_PROTOCOL) {
+				byte[] passwKey = context.getPrivacyPasswordKeySHA384();
+				privKey = SnmpUtilities.getLocalizedKeySHA384(passwKey, node.getSnmpEngineId());
 			}
 
 			int pprot = context.getPrivacyProtocol();
@@ -245,10 +290,22 @@ class AsnEncoderv3 extends AsnEncoderBase
 				byte[] passwKey = context.getAuthenticationPasswordKeySHA1();
 				byte[] authkey = SnmpUtilities.getLocalizedKeySHA1(passwKey, node.getSnmpEngineId());
 				calcFingerPrint = SnmpUtilities.getFingerPrintSHA1(authkey, message);
-			} else if (context.isSHA256()) {
+			} else if (authenticationProtocol == context.SHA256_PROTOCOL) {
 				byte[] passwKey = context.getAuthenticationPasswordKeySHA256();
 				byte[] authkey = SnmpUtilities.getLocalizedKeySHA256(passwKey, node.getSnmpEngineId());
 				calcFingerPrint = SnmpUtilities.getFingerPrintSHA256(authkey, message);
+			} else if(authenticationProtocol == context.SHA512_PROTOCOL) {
+				byte[] passwKey = context.getAuthenticationPasswordKeySHA512();
+				byte[] authkey = SnmpUtilities.getLocalizedKeySHA512(passwKey, node.getSnmpEngineId());
+				calcFingerPrint = SnmpUtilities.getFingerPrintSHA512(authkey, message);
+			} else if (authenticationProtocol == context.SHA224_PROTOCOL) {
+				byte[] passwKey = context.getAuthenticationPasswordKeySHA224();
+				byte[] authkey = SnmpUtilities.getLocalizedKeySHA224(passwKey, node.getSnmpEngineId());
+				calcFingerPrint = SnmpUtilities.getFingerPrintSHA224(authkey, message);
+			} else if (authenticationProtocol == context.SHA384_PROTOCOL) {
+				byte[] passwKey = context.getAuthenticationPasswordKeySHA384();
+				byte[] authkey = SnmpUtilities.getLocalizedKeySHA384(passwKey, node.getSnmpEngineId());
+				calcFingerPrint = SnmpUtilities.getFingerPrintSHA384(authkey, message);
 			}
 
 			int usmPos = asnSecurityParameters.getContentsPos();
@@ -260,12 +317,22 @@ class AsnEncoderv3 extends AsnEncoderBase
 				SnmpUtilities.dumpBytes(str, calcFingerPrint);
 			}
 
-			if (context.isSHA256()) {
+			if (authenticationProtocol == context.SHA256_PROTOCOL) {
 				// Replace the dummy finger print with the real finger print
 				System.arraycopy(calcFingerPrint, 0, message, fpPos, dummySHA256FingerPrint.length);
-			} else {
+			} else if(authenticationProtocol == context.SHA1_PROTOCOL ||
+			authenticationProtocol == context.MD5_PROTOCOL) {
 				// Replace the dummy finger print with the real finger print
 				System.arraycopy(calcFingerPrint, 0, message, fpPos, dummyFingerPrint.length);
+			} else if(authenticationProtocol == context.SHA512_PROTOCOL) {
+				// Replace the dummy finger print with the real finger print
+				System.arraycopy(calcFingerPrint, 0, message, fpPos, dummySHA512FingerPrint.length);
+			} else if (authenticationProtocol == context.SHA224_PROTOCOL) {
+				// Replace the dummy finger print with the real finger print
+				System.arraycopy(calcFingerPrint, 0, message, fpPos, dummySHA224FingerPrint.length);
+			} else if(authenticationProtocol == context.SHA384_PROTOCOL) {
+				// Replace the dummy finger print with the real finger print
+				System.arraycopy(calcFingerPrint, 0, message, fpPos, dummySHA384FingerPrint.length);
 			}
 
 		}

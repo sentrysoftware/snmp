@@ -50,6 +50,9 @@ public class SnmpClient {
 	public static final String SNMP_AUTH_MD5 = "MD5";
 	public static final String SNMP_AUTH_SHA = "SHA";
 	public static final String SNMP_AUTH_SHA256 = "SHA256";
+	public static final String SNMP_AUTH_SHA512 = "SHA512";
+	public static final String SNMP_AUTH_SHA224 = "SHA224";
+	public static final String SNMP_AUTH_SHA384 = "SHA384";
 	public static final String SNMP_PRIVACY_DES = "DES";
 	public static final String SNMP_PRIVACY_AES = "AES";
 	public static final String SNMP_NONE = "None";
@@ -131,8 +134,17 @@ public class SnmpClient {
 		if (version == SNMP_V3) {
 			if (authType != null) {
 				if (!authType.isEmpty()) {
-					if (!authType.equals(SNMP_AUTH_MD5) && !authType.equals(SNMP_AUTH_SHA) && !authType.equals(SNMP_AUTH_SHA256)) {
-						throw new IllegalArgumentException("Invalid authentication method '" + authType + "' (must be either '" + SNMP_AUTH_MD5 + "' or '" + SNMP_AUTH_SHA + "' or empty)");
+					if (!authType.equals(SNMP_AUTH_MD5) && !authType.equals(SNMP_AUTH_SHA)
+						&& !authType.equals(SNMP_AUTH_SHA256) && !authType.equals(SNMP_AUTH_SHA512)
+						&& !authType.equals(SNMP_AUTH_SHA224) && !authType.equals(SNMP_AUTH_SHA384)) {
+						throw new IllegalArgumentException("Invalid authentication method '" + authType +
+							"' (must be either '" + SNMP_AUTH_MD5
+							+ "' or '" + SNMP_AUTH_SHA
+							+ "' or '" + SNMP_AUTH_SHA256
+							+ "' or '" + SNMP_AUTH_SHA512
+							+ "' or '" + SNMP_AUTH_SHA224
+							+ "' or '" + SNMP_AUTH_SHA384
+							+"' or empty)");
 					}
 				}
 			}
@@ -198,6 +210,17 @@ public class SnmpClient {
 			else if (authType.equals(SNMP_AUTH_SHA256)) {
 				authenticate = true;
 				authProtocolCode = SnmpContextv3Face.SHA256_PROTOCOL;
+			}
+			else if (authType.equals(SNMP_AUTH_SHA512)) {
+				authenticate = true;
+				authProtocolCode = SnmpContextv3Face.SHA512_PROTOCOL;
+			} else if (authType.equals(SNMP_AUTH_SHA224)) {
+				authenticate = true;
+				authProtocolCode = SnmpContextv3Face.SHA224_PROTOCOL;
+
+			} else if(authType.equals(SNMP_AUTH_SHA384)) {
+				authenticate = true;
+				authProtocolCode = SnmpContextv3Face.SHA384_PROTOCOL;
 			}
 
 			// Verify the privacy thing

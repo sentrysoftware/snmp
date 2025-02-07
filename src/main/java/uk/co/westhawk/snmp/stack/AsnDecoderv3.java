@@ -252,9 +252,18 @@ throws IOException, DecodingException
 				} else if (authenticationProtocol == context.SHA1_PROTOCOL) {
 					byte[] passwKey = context.getPrivacyPasswordKeySHA1();
 					privKey = SnmpUtilities.getLocalizedKeySHA1(passwKey, engineId);
-				} else if (context.isSHA256()) {
+				} else if (authenticationProtocol == context.SHA256_PROTOCOL) {
 					byte[] passwKey = context.getPrivacyPasswordKeySHA256();
 					privKey = SnmpUtilities.getLocalizedKeySHA256(passwKey, engineId);
+				} else if(authenticationProtocol == context.SHA512_PROTOCOL){
+					byte[] passwKey = context.getPrivacyPasswordKeySHA512();
+					privKey = SnmpUtilities.getLocalizedKeySHA512(passwKey, engineId);
+				} else if (authenticationProtocol == context.SHA224_PROTOCOL){
+					byte[] passwKey = context.getPrivacyPasswordKeySHA224();
+					privKey = SnmpUtilities.getLocalizedKeySHA224(passwKey, engineId);
+				} else if(authenticationProtocol == context.SHA384_PROTOCOL){
+					byte[] passwKey = context.getPrivacyPasswordKeySHA384();
+					privKey = SnmpUtilities.getLocalizedKeySHA384(passwKey, engineId);
 				}
 	
 				AsnOctets asnEncryptedScopedPdu = (AsnOctets) asnScopedObject;
@@ -319,11 +328,18 @@ throws IOException, DecodingException
 	
 			byte[] calcFingerPrint = null;
 			// Replace the real finger print with the dummy finger print
-			byte[] dummyFingerPrint;
-			if (context.isSHA256()) {
+			byte[] dummyFingerPrint = new byte[0];
+			if (authenticationProtocol == context.SHA256_PROTOCOL) {
 				dummyFingerPrint = AsnEncoderv3.dummySHA256FingerPrint;
-			} else {
+			} else if(authenticationProtocol == context.SHA1_PROTOCOL ||
+			authenticationProtocol == context.MD5_PROTOCOL){
 				dummyFingerPrint = AsnEncoderv3.dummyFingerPrint;
+			} else if(authenticationProtocol == context.SHA512_PROTOCOL){
+				dummyFingerPrint = AsnEncoderv3.dummySHA512FingerPrint;
+			} else if (authenticationProtocol == context.SHA224_PROTOCOL){
+				dummyFingerPrint = AsnEncoderv3.dummySHA224FingerPrint;
+			} else if(authenticationProtocol == context.SHA384_PROTOCOL){
+				dummyFingerPrint = AsnEncoderv3.dummySHA384FingerPrint;
 			}
 			System.arraycopy(dummyFingerPrint, 0, message, fpPos, realFingerPrint.length);
 	
@@ -335,10 +351,22 @@ throws IOException, DecodingException
 				byte[] passwKey = context.getAuthenticationPasswordKeySHA1();
 				byte[] authkey = SnmpUtilities.getLocalizedKeySHA1(passwKey, engineId);
 				calcFingerPrint = SnmpUtilities.getFingerPrintSHA1(authkey, message);
-			} else if (context.isSHA256()) {
+			} else if (authenticationProtocol == context.SHA256_PROTOCOL) {
 				byte[] passwKey = context.getAuthenticationPasswordKeySHA256();
 				byte[] authkey = SnmpUtilities.getLocalizedKeySHA256(passwKey, engineId);
 				calcFingerPrint = SnmpUtilities.getFingerPrintSHA256(authkey, message);
+			} else if(authenticationProtocol == context.SHA512_PROTOCOL){
+				byte[] passwKey = context.getAuthenticationPasswordKeySHA512();
+				byte[] authkey = SnmpUtilities.getLocalizedKeySHA512(passwKey, engineId);
+				calcFingerPrint = SnmpUtilities.getFingerPrintSHA512(authkey, message);
+			} else if (authenticationProtocol == context.SHA224_PROTOCOL){
+				byte[] passwKey = context.getAuthenticationPasswordKeySHA224();
+				byte[] authkey = SnmpUtilities.getLocalizedKeySHA224(passwKey, engineId);
+				calcFingerPrint = SnmpUtilities.getFingerPrintSHA224(authkey, message);
+			} else if (authenticationProtocol == context.SHA384_PROTOCOL){
+				byte[] passwKey = context.getAuthenticationPasswordKeySHA384();
+				byte[] authkey = SnmpUtilities.getLocalizedKeySHA384(passwKey, engineId);
+				calcFingerPrint = SnmpUtilities.getFingerPrintSHA384(authkey, message);
 			}
 	
 			if (SnmpUtilities.areBytesEqual(realFingerPrint, calcFingerPrint) == false) {
