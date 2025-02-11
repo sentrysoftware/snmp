@@ -1830,7 +1830,7 @@ final static void setBytesFromLong(byte[] ret, long value, int offs)
      * @param message The message to which the fingerprint will be copied.
      * @param fpPos The position in the message where the fingerprint will be copied.
      */
-    public static void copyFingerprintToEncodedMessage(SnmpContextv3Basis context, int authenticationProtocol, byte[] calcFingerPrint, byte[] message, int fpPos)
+    public static void copyFingerprintToSnmpMessage(SnmpContextv3Basis context, int authenticationProtocol, byte[] calcFingerPrint, byte[] message, int fpPos)
     {
         if (authenticationProtocol == context.SHA256_PROTOCOL) {
             // Replace the dummy finger print with the real finger print

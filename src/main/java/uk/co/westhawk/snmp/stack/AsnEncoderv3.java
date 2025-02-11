@@ -70,7 +70,7 @@ import java.io.IOException;
 import java.util.Enumeration;
 
 import static uk.co.westhawk.snmp.util.SnmpUtilities.computeFingerprint;
-import static uk.co.westhawk.snmp.util.SnmpUtilities.copyFingerprintToEncodedMessage;
+import static uk.co.westhawk.snmp.util.SnmpUtilities.copyFingerprintToSnmpMessage;
 import static uk.co.westhawk.snmp.util.SnmpUtilities.generatePrivacyKey;
 import static uk.co.westhawk.snmp.util.SnmpUtilities.initFingerprint;
 
@@ -225,7 +225,7 @@ class AsnEncoderv3 extends AsnEncoderBase
 			}
 
 			// Copy the fingerprint to the message
-			copyFingerprintToEncodedMessage(context, authenticationProtocol, computedFingerprint, message, fpPos);
+			copyFingerprintToSnmpMessage(context, authenticationProtocol, computedFingerprint, message, fpPos);
 
 		}
 		return message;
