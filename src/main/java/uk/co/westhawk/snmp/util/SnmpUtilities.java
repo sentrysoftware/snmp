@@ -49,9 +49,11 @@ package uk.co.westhawk.snmp.util;
  * ╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱
  */
 
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.stream.IntStream;
 
 
 import uk.co.westhawk.snmp.stack.*;
@@ -95,6 +97,56 @@ public class SnmpUtilities extends Object
 
     private static int salt_count = -1;
     private static long asalt;
+
+    // 12 zero octets
+    static byte[] dummySha1FingerPrint = IntStream
+            .range(0, 12)
+            .collect(() ->
+                            ByteBuffer.allocate(12), // supplier
+                    (buffer, i) -> buffer.put((byte) 0), // accumulator
+                    (b1, b2) -> { } // combiner (empty since we're not parallelizing)
+            )
+            .array();
+
+    // 24 zero octets
+    static byte[] dummySHA256FingerPrint = IntStream
+            .range(0, 24)
+            .collect(() ->
+                            ByteBuffer.allocate(24), // supplier
+                    (buffer, i) -> buffer.put((byte) 0), // accumulator
+                    (b1, b2) -> { } // combiner (empty since we're not parallelizing)
+            )
+            .array();
+
+    // 48 zero octets
+    static byte[] dummySHA512FingerPrint = IntStream
+            .range(0, 48)
+            .collect(() ->
+                            ByteBuffer.allocate(48), // supplier
+                    (buffer, i) -> buffer.put((byte) 0), // accumulator
+                    (b1, b2) -> { } // combiner (empty since we're not parallelizing)
+            )
+            .array();
+
+    // 16 zero octets
+    static byte[] dummySHA224FingerPrint = IntStream
+            .range(0, 16)
+            .collect(() ->
+                            ByteBuffer.allocate(16), // supplier
+                    (buffer, i) -> buffer.put((byte) 0), // accumulator
+                    (b1, b2) -> { } // combiner (empty since we're not parallelizing)
+            )
+            .array();
+
+    // 32 zero octets
+    static byte[] dummySHA384FingerPrint = IntStream
+            .range(0, 32)
+            .collect(() ->
+                            ByteBuffer.allocate(32), // supplier
+                    (buffer, i) -> buffer.put((byte) 0), // accumulator
+                    (b1, b2) -> { } // combiner (empty since we're not parallelizing)
+            )
+            .array();
 
 
 /**
@@ -1672,5 +1724,130 @@ final static void setBytesFromLong(byte[] ret, long value, int offs)
         return ret;
     }
 
+    /**
+     * Computes the fingerprint for the given SNMP message.
+     *
+     * @param context The SNMP context.
+     * @param snmpEngineId The SNMP engine ID.
+     * @param authenticationProtocol The authentication protocol.
+     * @param computedFingerprint The computed fingerprint.
+     * @param message The SNMP message.
+     * @return The computed fingerprint.
+     */
+    public static byte[] computeFingerprint(SnmpContextv3Basis context, String snmpEngineId, int authenticationProtocol, byte[] computedFingerprint, byte[] message) {
+        if (authenticationProtocol == context.MD5_PROTOCOL) {
+            byte[] passwKey = context.getAuthenticationPasswordKeyMD5();
+            byte[] authkey = SnmpUtilities.getLocalizedKeyMD5(passwKey, snmpEngineId);
+            computedFingerprint = SnmpUtilities.getFingerPrintMD5(authkey, message);
+        } else if (authenticationProtocol == context.SHA1_PROTOCOL) {
+            byte[] passwKey = context.getAuthenticationPasswordKeySHA1();
+            byte[] authkey = SnmpUtilities.getLocalizedKeySHA1(passwKey, snmpEngineId);
+            computedFingerprint = SnmpUtilities.getFingerPrintSHA1(authkey, message);
+        } else if (authenticationProtocol == context.SHA256_PROTOCOL) {
+            byte[] passwKey = context.getAuthenticationPasswordKeySHA256();
+            byte[] authkey = SnmpUtilities.getLocalizedKeySHA256(passwKey,snmpEngineId);
+            computedFingerprint = SnmpUtilities.getFingerPrintSHA256(authkey, message);
+        } else if(authenticationProtocol == context.SHA512_PROTOCOL) {
+            byte[] passwKey = context.getAuthenticationPasswordKeySHA512();
+            byte[] authkey = SnmpUtilities.getLocalizedKeySHA512(passwKey, snmpEngineId);
+            computedFingerprint = SnmpUtilities.getFingerPrintSHA512(authkey, message);
+        } else if (authenticationProtocol == context.SHA224_PROTOCOL) {
+            byte[] passwKey = context.getAuthenticationPasswordKeySHA224();
+            byte[] authkey = SnmpUtilities.getLocalizedKeySHA224(passwKey, snmpEngineId);
+            computedFingerprint = SnmpUtilities.getFingerPrintSHA224(authkey, message);
+        } else if (authenticationProtocol == context.SHA384_PROTOCOL) {
+            byte[] passwKey = context.getAuthenticationPasswordKeySHA384();
+            byte[] authkey = SnmpUtilities.getLocalizedKeySHA384(passwKey, snmpEngineId);
+            computedFingerprint = SnmpUtilities.getFingerPrintSHA384(authkey, message);
+        }
+        return computedFingerprint;
+    }
 
+    /**
+     * Generates the privacy key based on the authentication protocol.
+     *
+     * @param context The SNMP context.
+     * @param engineId The SNMP engine ID.
+     * @param authenticationProtocol The authentication protocol.
+     * @return The generated privacy key.
+     */
+    public static byte[] generatePrivacyKey(SnmpContextv3Basis context, String engineId, int authenticationProtocol) {
+        byte[] derivedPrivacyKey;
+        byte[] localizedPrivacyKey = null;
+        if (authenticationProtocol == context.MD5_PROTOCOL) {
+            derivedPrivacyKey = context.getPrivacyPasswordKeyMD5();
+            localizedPrivacyKey = SnmpUtilities.getLocalizedKeyMD5(derivedPrivacyKey, engineId);
+        } else if (authenticationProtocol == context.SHA1_PROTOCOL) {
+            derivedPrivacyKey = context.getPrivacyPasswordKeySHA1();
+            localizedPrivacyKey = SnmpUtilities.getLocalizedKeySHA1(derivedPrivacyKey, engineId);
+        } else if (authenticationProtocol == context.SHA256_PROTOCOL) {
+            derivedPrivacyKey = context.getPrivacyPasswordKeySHA256();
+            localizedPrivacyKey = SnmpUtilities.getLocalizedKeySHA256(derivedPrivacyKey, engineId);
+        } else if (authenticationProtocol == context.SHA512_PROTOCOL) {
+            derivedPrivacyKey = context.getPrivacyPasswordKeySHA512();
+            localizedPrivacyKey = SnmpUtilities.getLocalizedKeySHA512(derivedPrivacyKey, engineId);
+        } else if (authenticationProtocol == context.SHA224_PROTOCOL) {
+            derivedPrivacyKey = context.getPrivacyPasswordKeySHA224();
+            localizedPrivacyKey = SnmpUtilities.getLocalizedKeySHA224(derivedPrivacyKey, engineId);
+        } else if(authenticationProtocol == context.SHA384_PROTOCOL) {
+            derivedPrivacyKey = context.getPrivacyPasswordKeySHA384();
+            localizedPrivacyKey = SnmpUtilities.getLocalizedKeySHA384(derivedPrivacyKey, engineId);
+        }
+        return localizedPrivacyKey;
+    }
+
+    /**
+     * Returns an `AsnOctets` object with a dummy fingerprint based on the authentication protocol.
+     * Returns an empty `AsnOctets` if authentication is not used.
+     *
+     * @param context The SNMPv3 context.
+     * @param authenticationProtocol The authentication protocol (e.g., SHA256, SHA1, etc.).
+     * @return The corresponding fingerprint byte array
+     */
+    public static byte[] initFingerprint(SnmpContextv3Basis context, int authenticationProtocol) {
+        byte[] dummyFingerprint = new byte[0];
+        if (authenticationProtocol == context.SHA256_PROTOCOL) {
+            dummyFingerprint = dummySHA256FingerPrint;
+        } else if(authenticationProtocol == context.SHA1_PROTOCOL ||
+                authenticationProtocol == context.MD5_PROTOCOL) {
+            dummyFingerprint = dummySha1FingerPrint;
+        } else if(authenticationProtocol == context.SHA512_PROTOCOL) {
+            dummyFingerprint = dummySHA512FingerPrint;
+        } else if (authenticationProtocol == context.SHA224_PROTOCOL) {
+            dummyFingerprint = dummySHA224FingerPrint;
+        } else if(authenticationProtocol == context.SHA384_PROTOCOL) {
+            dummyFingerprint = dummySHA384FingerPrint;
+        }
+        return dummyFingerprint;
+    }
+
+    /**
+     * Copies the calculated fingerprint to the message at the specified position.
+     *
+     * @param context The SNMP context.
+     * @param authenticationProtocol The authentication protocol (e.g., SHA256, SHA1, etc.).
+     * @param calcFingerPrint The calculated fingerprint.
+     * @param message The message to which the fingerprint will be copied.
+     * @param fpPos The position in the message where the fingerprint will be copied.
+     */
+    public static void copyFingerprintToEncodedMessage(SnmpContextv3Basis context, int authenticationProtocol, byte[] calcFingerPrint, byte[] message, int fpPos)
+    {
+        if (authenticationProtocol == context.SHA256_PROTOCOL) {
+            // Replace the dummy finger print with the real finger print
+            System.arraycopy(calcFingerPrint, 0, message, fpPos, dummySHA256FingerPrint.length);
+        } else if(authenticationProtocol == context.SHA1_PROTOCOL ||
+                authenticationProtocol == context.MD5_PROTOCOL) {
+            // Replace the dummy finger print with the real finger print
+            System.arraycopy(calcFingerPrint, 0, message, fpPos, dummySha1FingerPrint.length);
+        } else if(authenticationProtocol == context.SHA512_PROTOCOL) {
+            // Replace the dummy finger print with the real finger print
+            System.arraycopy(calcFingerPrint, 0, message, fpPos, dummySHA512FingerPrint.length);
+        } else if (authenticationProtocol == context.SHA224_PROTOCOL) {
+            // Replace the dummy finger print with the real finger print
+            System.arraycopy(calcFingerPrint, 0, message, fpPos, dummySHA224FingerPrint.length);
+        } else if(authenticationProtocol == context.SHA384_PROTOCOL) {
+            // Replace the dummy finger print with the real finger print
+            System.arraycopy(calcFingerPrint, 0, message, fpPos, dummySHA384FingerPrint.length);
+        }
+    }
 }

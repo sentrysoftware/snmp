@@ -64,7 +64,12 @@ package uk.co.westhawk.snmp.stack;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
 import uk.co.westhawk.snmp.util.SnmpUtilities;
+
+import static uk.co.westhawk.snmp.util.SnmpUtilities.computeFingerprint;
+import static uk.co.westhawk.snmp.util.SnmpUtilities.generatePrivacyKey;
+import static uk.co.westhawk.snmp.util.SnmpUtilities.initFingerprint;
 
 /**
  * This class contains the v3 specific methods to decode bytes into a Pdu.
@@ -83,7 +88,7 @@ class AsnDecoderv3 extends AsnDecoderBase implements usmStatsConstants
 /**
  * Returns the msgId of the SNMPv3 asn sequence.
  */
-int getMsgId(AsnSequence asnTopSeq) throws DecodingException
+int getMessageId(AsnSequence asnTopSeq) throws DecodingException
 {
     int msgId = -1;
     AsnSequence asnHeaderData = getAsnHeaderData(asnTopSeq);
@@ -189,14 +194,14 @@ throws IOException, DecodingException
 		byte[] realFingerPrint = realFingerPrintObject.getBytes();
 		byte[] salt = ((AsnOctets) usmObject.getObj(5)).getBytes();
 	
-		TimeWindow tWindow = TimeWindow.getCurrent();
+		TimeWindow timeWindow = TimeWindow.getCurrent();
 		if (amIAuthoritative == false) {
 			/*
 			 * engineId should not be empty, however net-snmp 5.3.0.1 has a bug (1427410) in
 			 * their trapsess; it sends an empty engineId
 			 */
 			if (engineId.length() > 0
-					&& tWindow.isEngineIdOK(context.getReceivedFromHostAddress(), context.getPort(), engineId) == false) {
+					&& timeWindow.isEngineIdOK(context.getReceivedFromHostAddress(), context.getPort(), engineId) == false) {
 				String msg = "Received engine Id ('" + engineId + "') is not correct.";
 				msg += " amIAuthoritative == false";
 				throw new DecodingException(msg);
@@ -211,9 +216,9 @@ throws IOException, DecodingException
 				String receivedFromHostAddress = context.getReceivedFromHostAddress();
 				if (sendToHostAddress.equals(receivedFromHostAddress) == false) {
 					String storedEngineId;
-					storedEngineId = tWindow.getSnmpEngineId(sendToHostAddress, context.getPort());
+					storedEngineId = timeWindow.getSnmpEngineId(sendToHostAddress, context.getPort());
 					if (storedEngineId == null) {
-						tWindow.setSnmpEngineId(sendToHostAddress, context.getPort(), "00");
+						timeWindow.setSnmpEngineId(sendToHostAddress, context.getPort(), "00");
 					}
 				}
 			}
@@ -222,7 +227,7 @@ throws IOException, DecodingException
 			// Section 3.2 rfc
 			// engineId of length '0' -> discovery.
 			if (engineId.length() > 0
-					&& tWindow.isEngineIdOK(context.getUsmAgent().MYFAKEHOSTNAME, context.getPort(), engineId) == false) {
+					&& timeWindow.isEngineIdOK(context.getUsmAgent().MYFAKEHOSTNAME, context.getPort(), engineId) == false) {
 				String msg = "Received engine Id ('" + engineId + "') is not correct.";
 				msg += " amIAuthoritative == true";
 				throw new DecodingException(msg);
@@ -244,42 +249,23 @@ throws IOException, DecodingException
 			AsnObject asnScopedObject = asnTopSeq.getObj(3);
 			AsnSequence asnPlainScopedPdu = null;
 			if (isUsePrivacy == true) {
-				// if decryption was used, the asnScopedObject would be AsnOctets
-				byte[] privKey = null;
-				if (authenticationProtocol == context.MD5_PROTOCOL) {
-					byte[] passwKey = context.getPrivacyPasswordKeyMD5();
-					privKey = SnmpUtilities.getLocalizedKeyMD5(passwKey, engineId);
-				} else if (authenticationProtocol == context.SHA1_PROTOCOL) {
-					byte[] passwKey = context.getPrivacyPasswordKeySHA1();
-					privKey = SnmpUtilities.getLocalizedKeySHA1(passwKey, engineId);
-				} else if (authenticationProtocol == context.SHA256_PROTOCOL) {
-					byte[] passwKey = context.getPrivacyPasswordKeySHA256();
-					privKey = SnmpUtilities.getLocalizedKeySHA256(passwKey, engineId);
-				} else if(authenticationProtocol == context.SHA512_PROTOCOL){
-					byte[] passwKey = context.getPrivacyPasswordKeySHA512();
-					privKey = SnmpUtilities.getLocalizedKeySHA512(passwKey, engineId);
-				} else if (authenticationProtocol == context.SHA224_PROTOCOL){
-					byte[] passwKey = context.getPrivacyPasswordKeySHA224();
-					privKey = SnmpUtilities.getLocalizedKeySHA224(passwKey, engineId);
-				} else if(authenticationProtocol == context.SHA384_PROTOCOL){
-					byte[] passwKey = context.getPrivacyPasswordKeySHA384();
-					privKey = SnmpUtilities.getLocalizedKeySHA384(passwKey, engineId);
-				}
-	
+				// Retrieves the localized privacy key from the derived privacy key
+				byte[] privacyKey = generatePrivacyKey(context, engineId, authenticationProtocol);
+
 				AsnOctets asnEncryptedScopedPdu = (AsnOctets) asnScopedObject;
 				byte[] encryptedText = asnEncryptedScopedPdu.getBytes();
 	
 				byte[] plainText = null;
-				int pprot = context.getPrivacyProtocol();
-				if (pprot == context.AES_ENCRYPT) {
-					plainText = SnmpUtilities.AESdecrypt(encryptedText, privKey, boots, time, salt);
+				int privacyProtocol = context.getPrivacyProtocol();
+				if (privacyProtocol == context.AES_ENCRYPT) {
+					plainText = SnmpUtilities.AESdecrypt(encryptedText, privacyKey, boots, time, salt);
 				} else {
-					plainText = SnmpUtilities.DESdecrypt(encryptedText, salt, privKey);
+					plainText = SnmpUtilities.DESdecrypt(encryptedText, salt, privacyKey);
 				}
 	
 				if (AsnObject.debug > 10) {
 					System.out.println("Encrypted PDU: ");
-					System.out.println("Decoding with : " + context.ProtocolNames[pprot]);
+					System.out.println("Decoding with : " + context.ProtocolNames[privacyProtocol]);
 				}
 	
 				ByteArrayInputStream plainIn = new ByteArrayInputStream(plainText);
@@ -287,9 +273,6 @@ throws IOException, DecodingException
 			} else {
 				asnPlainScopedPdu = (AsnSequence) asnScopedObject;
 			}
-	
-			byte[] contextId = ((AsnOctets) asnPlainScopedPdu.getObj(0)).getBytes();
-			String contextName = ((AsnOctets) asnPlainScopedPdu.getObj(1)).getValue();
 			pduSeq = (AsnPduSequence) asnPlainScopedPdu.findPdu();
 		} catch (DecodingException exc) {
 			encryptionDecodingException = exc;
@@ -325,66 +308,31 @@ throws IOException, DecodingException
 				String str = "Pos finger print = " + fpPos + ", len = " + fpLength;
 				SnmpUtilities.dumpBytes(str, realFingerPrint);
 			}
-	
-			byte[] calcFingerPrint = null;
-			// Replace the real finger print with the dummy finger print
-			byte[] dummyFingerPrint = new byte[0];
-			if (authenticationProtocol == context.SHA256_PROTOCOL) {
-				dummyFingerPrint = AsnEncoderv3.dummySHA256FingerPrint;
-			} else if(authenticationProtocol == context.SHA1_PROTOCOL ||
-			authenticationProtocol == context.MD5_PROTOCOL){
-				dummyFingerPrint = AsnEncoderv3.dummyFingerPrint;
-			} else if(authenticationProtocol == context.SHA512_PROTOCOL){
-				dummyFingerPrint = AsnEncoderv3.dummySHA512FingerPrint;
-			} else if (authenticationProtocol == context.SHA224_PROTOCOL){
-				dummyFingerPrint = AsnEncoderv3.dummySHA224FingerPrint;
-			} else if(authenticationProtocol == context.SHA384_PROTOCOL){
-				dummyFingerPrint = AsnEncoderv3.dummySHA384FingerPrint;
-			}
+
+			byte[] computedFingerprint = null;
+			// Init the fingerprint
+			byte[] dummyFingerPrint = initFingerprint(context, authenticationProtocol);
 			System.arraycopy(dummyFingerPrint, 0, message, fpPos, realFingerPrint.length);
-	
-			if (authenticationProtocol == context.MD5_PROTOCOL) {
-				byte[] passwKey = context.getAuthenticationPasswordKeyMD5();
-				byte[] authkey = SnmpUtilities.getLocalizedKeyMD5(passwKey, engineId);
-				calcFingerPrint = SnmpUtilities.getFingerPrintMD5(authkey, message);
-			} else if (authenticationProtocol == context.SHA1_PROTOCOL) {
-				byte[] passwKey = context.getAuthenticationPasswordKeySHA1();
-				byte[] authkey = SnmpUtilities.getLocalizedKeySHA1(passwKey, engineId);
-				calcFingerPrint = SnmpUtilities.getFingerPrintSHA1(authkey, message);
-			} else if (authenticationProtocol == context.SHA256_PROTOCOL) {
-				byte[] passwKey = context.getAuthenticationPasswordKeySHA256();
-				byte[] authkey = SnmpUtilities.getLocalizedKeySHA256(passwKey, engineId);
-				calcFingerPrint = SnmpUtilities.getFingerPrintSHA256(authkey, message);
-			} else if(authenticationProtocol == context.SHA512_PROTOCOL){
-				byte[] passwKey = context.getAuthenticationPasswordKeySHA512();
-				byte[] authkey = SnmpUtilities.getLocalizedKeySHA512(passwKey, engineId);
-				calcFingerPrint = SnmpUtilities.getFingerPrintSHA512(authkey, message);
-			} else if (authenticationProtocol == context.SHA224_PROTOCOL){
-				byte[] passwKey = context.getAuthenticationPasswordKeySHA224();
-				byte[] authkey = SnmpUtilities.getLocalizedKeySHA224(passwKey, engineId);
-				calcFingerPrint = SnmpUtilities.getFingerPrintSHA224(authkey, message);
-			} else if (authenticationProtocol == context.SHA384_PROTOCOL){
-				byte[] passwKey = context.getAuthenticationPasswordKeySHA384();
-				byte[] authkey = SnmpUtilities.getLocalizedKeySHA384(passwKey, engineId);
-				calcFingerPrint = SnmpUtilities.getFingerPrintSHA384(authkey, message);
-			}
-	
-			if (SnmpUtilities.areBytesEqual(realFingerPrint, calcFingerPrint) == false) {
+
+			// Calculate the fingerprint
+			computedFingerprint = computeFingerprint(context, engineId, authenticationProtocol, computedFingerprint, message);
+
+			if (SnmpUtilities.areBytesEqual(realFingerPrint, computedFingerprint) == false) {
 				String msg = "Authentication comparison failed";
 				throw new DecodingException(msg);
 			} else {
 				if (pduSeq != null && boots == 0 && time == 0) {
 					pduSeq.setSnmpv3Discovery(true);
 				}
-				if (tWindow.isOutsideTimeWindow(engineId, boots, time)) {
+				if (timeWindow.isOutsideTimeWindow(engineId, boots, time)) {
 					String msg = "Message is outside time window";
 					throw new DecodingException(msg);
 				}
 				isAuthentic = true;
 			}
 		}
-		tWindow.updateTimeWindow(engineId, boots, time, isAuthentic);
-	
+		timeWindow.updateTimeWindow(engineId, boots, time, isAuthentic);
+
 		boolean userIsUsingPrivacy = context.isUsePrivacy();
 		if (isCorrect == true && (isUsePrivacy != userIsUsingPrivacy)) {
 			String msg = "User " + userName + " does ";

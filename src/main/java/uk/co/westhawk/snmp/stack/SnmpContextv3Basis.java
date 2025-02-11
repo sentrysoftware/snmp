@@ -48,14 +48,15 @@ package uk.co.westhawk.snmp.stack;
  * ╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱
  */
 
-import java.net.*;
-import java.io.*;
-import java.util.*;
+import uk.co.westhawk.snmp.beans.UsmDiscoveryBean;
+import uk.co.westhawk.snmp.event.RequestPduListener;
+import uk.co.westhawk.snmp.pdu.DiscoveryPdu;
+import uk.co.westhawk.snmp.util.SnmpUtilities;
 
-import uk.co.westhawk.snmp.pdu.*;
-import uk.co.westhawk.snmp.util.*;
-import uk.co.westhawk.snmp.event.*;
-import uk.co.westhawk.snmp.beans.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Hashtable;
 
 /**
  * This class contains the basis for the SNMP v3 contexts that is needed 
@@ -364,8 +365,8 @@ public int getPrivacyProtocol()
 {
     return privacyProtocol;    
 }
-    
-byte[] getAuthenticationPasswordKeyMD5()
+
+public byte[] getAuthenticationPasswordKeyMD5()
 {
     if (userAuthKeyMD5 == null)
     {
@@ -374,7 +375,7 @@ byte[] getAuthenticationPasswordKeyMD5()
     return userAuthKeyMD5;
 }
 
-byte[] getAuthenticationPasswordKeySHA1()
+public byte[] getAuthenticationPasswordKeySHA1()
 {
     if (userAuthKeySHA1 == null)
     {
@@ -388,7 +389,7 @@ byte[] getAuthenticationPasswordKeySHA1()
 	 * 
 	 * @return the authentication password key for SHA256
 	 */
-	byte[] getAuthenticationPasswordKeySHA256() {
+	public byte[] getAuthenticationPasswordKeySHA256() {
 		if (userAuthKeySHA256 == null) {
 			userAuthKeySHA256 = SnmpUtilities.passwordToKeySHA256(userAuthenticationPassword);
 		}
@@ -400,7 +401,7 @@ byte[] getAuthenticationPasswordKeySHA1()
 	 *
 	 * @return the authentication password key for SHA-384
 	 */
-	byte[] getAuthenticationPasswordKeySHA384() {
+	public byte[] getAuthenticationPasswordKeySHA384() {
 		if (userAuthKeySHA384 == null) {
 			userAuthKeySHA384 = SnmpUtilities.passwordToKeySHA384(userAuthenticationPassword);
 		}
@@ -414,7 +415,7 @@ byte[] getAuthenticationPasswordKeySHA1()
 	 *
 	 * @return the authentication password key for SHA-224
 	 */
-	byte[] getAuthenticationPasswordKeySHA224() {
+	public byte[] getAuthenticationPasswordKeySHA224() {
 		if (userAuthKeySHA224 == null) {
 			userAuthKeySHA224 = SnmpUtilities.passwordToKeySHA224(userAuthenticationPassword);
 		}
@@ -427,14 +428,14 @@ byte[] getAuthenticationPasswordKeySHA1()
 	 *
 	 * @return the authentication password key for SHA512
 	 */
-	byte[] getAuthenticationPasswordKeySHA512() {
+	public byte[] getAuthenticationPasswordKeySHA512() {
 		if (userAuthKeySHA512 == null) {
 			userAuthKeySHA512 = SnmpUtilities.passwordToKeySHA512(userAuthenticationPassword);
 		}
 		return userAuthKeySHA512;
 	}
 
-byte[] getPrivacyPasswordKeyMD5()
+public byte[] getPrivacyPasswordKeyMD5()
 {
     if (userPrivKeyMD5 == null)
     {
@@ -443,7 +444,7 @@ byte[] getPrivacyPasswordKeyMD5()
     return userPrivKeyMD5;
 }
 
-byte[] getPrivacyPasswordKeySHA1()
+public byte[] getPrivacyPasswordKeySHA1()
 {
     if (userPrivKeySHA1 == null)
     {
@@ -457,7 +458,7 @@ byte[] getPrivacyPasswordKeySHA1()
 	 * 
 	 * @return the privacy password key for SHA256
 	 */
-	byte[] getPrivacyPasswordKeySHA256() {
+	public byte[] getPrivacyPasswordKeySHA256() {
 		if (userPrivKeySHA256 == null) {
 			userPrivKeySHA256 = SnmpUtilities.passwordToKeySHA256(userPrivacyPassword);
 		}
@@ -469,7 +470,7 @@ byte[] getPrivacyPasswordKeySHA1()
 	 *
 	 * @return the privacy password key for SHA-224
 	 */
-	byte[] getPrivacyPasswordKeySHA224() {
+	public byte[] getPrivacyPasswordKeySHA224() {
 		if (userPrivKeySHA224 == null) {
 			userPrivKeySHA224 = SnmpUtilities.passwordToKeySHA224(userPrivacyPassword);
 		}
@@ -481,7 +482,7 @@ byte[] getPrivacyPasswordKeySHA1()
 	 *
 	 * @return the privacy password key for SHA-384
 	 */
-	byte[] getPrivacyPasswordKeySHA384() {
+	public byte[] getPrivacyPasswordKeySHA384() {
 		if (userPrivKeySHA384 == null) {
 			userPrivKeySHA384 = SnmpUtilities.passwordToKeySHA384(userPrivacyPassword);
 		}
@@ -493,7 +494,7 @@ byte[] getPrivacyPasswordKeySHA1()
 	 *
 	 * @return the privacy password key for SHA512
 	 */
-	byte[] getPrivacyPasswordKeySHA512() {
+	public byte[] getPrivacyPasswordKeySHA512() {
 		if (userPrivKeySHA512 == null) {
 			userPrivKeySHA512 = SnmpUtilities.passwordToKeySHA512(userPrivacyPassword);
 		}
@@ -978,7 +979,7 @@ throws DecodingException, IOException
     in = new ByteArrayInputStream(bu);
 
     AsnSequence asnTopSeq = rpdu.DecodeSNMPv3(in);
-    int msgId = rpdu.getMsgId(asnTopSeq);
+    int msgId = rpdu.getMessageId(asnTopSeq);
     Integer rid = (Integer) msgIdHash.get(new Integer(msgId));
     if (rid != null)
     {
