@@ -67,8 +67,6 @@ import java.io.InputStream;
 
 import uk.co.westhawk.snmp.util.SnmpUtilities;
 
-import static uk.co.westhawk.snmp.util.SnmpUtilities.computeFingerprint;
-import static uk.co.westhawk.snmp.util.SnmpUtilities.generatePrivacyKey;
 import static uk.co.westhawk.snmp.util.SnmpUtilities.initFingerprint;
 
 /**
@@ -250,7 +248,7 @@ throws IOException, DecodingException
 			AsnSequence asnPlainScopedPdu = null;
 			if (isUsePrivacy == true) {
 				// Retrieves the localized privacy key from the derived privacy key
-				byte[] privacyKey = generatePrivacyKey(context, engineId, authenticationProtocol);
+				byte[] privacyKey = context.generatePrivacyKey(context, engineId, authenticationProtocol);
 
 				AsnOctets asnEncryptedScopedPdu = (AsnOctets) asnScopedObject;
 				byte[] encryptedText = asnEncryptedScopedPdu.getBytes();
@@ -265,7 +263,7 @@ throws IOException, DecodingException
 	
 				if (AsnObject.debug > 10) {
 					System.out.println("Encrypted PDU: ");
-					System.out.println("Decoding with : " + context.ProtocolNames[privacyProtocol]);
+					System.out.println("Decoding with : " + context.PROTOCOL_NAMES[privacyProtocol]);
 				}
 	
 				ByteArrayInputStream plainIn = new ByteArrayInputStream(plainText);
@@ -315,7 +313,7 @@ throws IOException, DecodingException
 			System.arraycopy(dummyFingerPrint, 0, message, fpPos, realFingerPrint.length);
 
 			// Calculate the fingerprint
-			computedFingerprint = computeFingerprint(context, engineId, authenticationProtocol, computedFingerprint, message);
+			computedFingerprint = context.computeFingerprint(context, engineId, authenticationProtocol, computedFingerprint, message);
 
 			if (SnmpUtilities.areBytesEqual(realFingerPrint, computedFingerprint) == false) {
 				String msg = "Authentication comparison failed";

@@ -69,9 +69,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Enumeration;
 
-import static uk.co.westhawk.snmp.util.SnmpUtilities.computeFingerprint;
 import static uk.co.westhawk.snmp.util.SnmpUtilities.copyFingerprintToSnmpMessage;
-import static uk.co.westhawk.snmp.util.SnmpUtilities.generatePrivacyKey;
 import static uk.co.westhawk.snmp.util.SnmpUtilities.initFingerprint;
 
 /**
@@ -148,7 +146,7 @@ class AsnEncoderv3 extends AsnEncoderBase
 		AsnOctets asnEncryptedScopedPdu = null;
 		if (context.isUsePrivacy()) {
 			// Retrieves the localized privacy key from the derived privacy key
-			byte[] privacyKey = generatePrivacyKey(context, node.getSnmpEngineId(), authenticationProtocol);
+			byte[] privacyKey = context.generatePrivacyKey(context, node.getSnmpEngineId(), authenticationProtocol);
 
 			int privacyProtocol = context.getPrivacyProtocol();
 			byte[] salt = null;
@@ -173,7 +171,7 @@ class AsnEncoderv3 extends AsnEncoderBase
 
 			asnEncryptedScopedPdu = new AsnOctets(encryptedText);
 			if (AsnObject.debug > 10) {
-				System.out.println("Encrypted body  with " + context.ProtocolNames[privacyProtocol]);
+				System.out.println("Encrypted body  with " + context.PROTOCOL_NAMES[privacyProtocol]);
 			}
 		} else {
 			privacyAsnOctets = new AsnOctets("");
@@ -213,7 +211,7 @@ class AsnEncoderv3 extends AsnEncoderBase
 			byte[] computedFingerprint = null;
 
 			// Calculate the fingerprint
-			computedFingerprint = computeFingerprint(context, node.getSnmpEngineId(), authenticationProtocol, computedFingerprint, message);
+			computedFingerprint = context.computeFingerprint(context, node.getSnmpEngineId(), authenticationProtocol, computedFingerprint, message);
 
 			int usmPos = asnSecurityParameters.getContentsPos();
 			int fpPos = fingerPrintOctets.getContentsPos();

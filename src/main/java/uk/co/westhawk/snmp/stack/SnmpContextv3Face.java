@@ -108,17 +108,17 @@ public interface SnmpContextv3Face extends SnmpContextBasisFace
      * The default value for the (security) user name. This is
      * "initial".
      */
-    public final static String Default_UserName = "initial";
+    public final static String DEFAULT_USERNAME = "initial";
 
     /**
      * The default Context Name. This is the zero length string, i.e. "".
      */
-    public final static String Default_ContextName = "";
+    public final static String DEFAULT_CONTEXT_NAME = "";
 
     /**
      * The array with the String represensations of the protocols.
      */
-    public final static String ProtocolNames [] =
+    public final static String PROTOCOL_NAMES[] =
     {
         "MD5",
         "SHA1",
@@ -129,6 +129,11 @@ public interface SnmpContextv3Face extends SnmpContextBasisFace
         "SHA224",
         "SHA384"
     };
+
+    /**
+     * The NoAuth protocol type.
+     */
+    public static final int NO_AUTH_PROTOCOL = PROTOCOL_NAMES.length;
 
 	/**
 	 * The SHA-256 protocol type.
@@ -324,7 +329,7 @@ public byte [] getContextEngineId();
  * By default this is "". 
  *
  * @param newContextName The contextName
- * @see #Default_ContextName
+ * @see #DEFAULT_CONTEXT_NAME
  */
 public void setContextName(String newContextName);
 

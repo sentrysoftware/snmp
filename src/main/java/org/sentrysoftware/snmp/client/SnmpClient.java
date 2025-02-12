@@ -191,12 +191,12 @@ public class SnmpClient {
 			// Verify and translate the authentication type
 			if (authType == null || authUsername == null || authPassword == null) {
 				authenticate = false;
-				authProtocolCode = 5;
+				authProtocolCode =  SnmpContextv3Face.NO_AUTH_PROTOCOL;
 				authPassword = "";
 			}
 			else if (authType.isEmpty() || authUsername.isEmpty() || authPassword.isEmpty()) {
 				authenticate = false;
-				authProtocolCode = 5;
+				authProtocolCode = SnmpContextv3Face.NO_AUTH_PROTOCOL;
 				authPassword = "";
 			}
 			else if (authType.equals(SNMP_AUTH_MD5)) {
