@@ -59,6 +59,13 @@ import org.bouncycastle.crypto.digests.*;
 import org.bouncycastle.crypto.params.*;
 import org.bouncycastle.crypto.engines.*;
 
+import static uk.co.westhawk.snmp.stack.SnmpContextv3Face.MD5_PROTOCOL;
+import static uk.co.westhawk.snmp.stack.SnmpContextv3Face.SHA1_PROTOCOL;
+import static uk.co.westhawk.snmp.stack.SnmpContextv3Face.SHA224_PROTOCOL;
+import static uk.co.westhawk.snmp.stack.SnmpContextv3Face.SHA256_PROTOCOL;
+import static uk.co.westhawk.snmp.stack.SnmpContextv3Face.SHA384_PROTOCOL;
+import static uk.co.westhawk.snmp.stack.SnmpContextv3Face.SHA512_PROTOCOL;
+
 
 /**
  * This class contains utilities for key and authentication encoding.
@@ -111,7 +118,17 @@ public class SnmpUtilities extends Object
     static byte[] dummySHA384FingerPrint = new byte[32];
 
 
-/**
+    private static final Map<Integer, byte[]> DUMMY_FINGERPRINT_MAP = new HashMap<>();
+    static {
+        DUMMY_FINGERPRINT_MAP.put(SnmpContextv3Basis.SHA256_PROTOCOL, dummySHA256FingerPrint);
+        DUMMY_FINGERPRINT_MAP.put(SnmpContextv3Basis.SHA1_PROTOCOL, dummySha1FingerPrint);
+        DUMMY_FINGERPRINT_MAP.put(SnmpContextv3Basis.MD5_PROTOCOL, dummySha1FingerPrint);
+        DUMMY_FINGERPRINT_MAP.put(SnmpContextv3Basis.SHA512_PROTOCOL, dummySHA512FingerPrint);
+        DUMMY_FINGERPRINT_MAP.put(SnmpContextv3Basis.SHA224_PROTOCOL, dummySHA224FingerPrint);
+        DUMMY_FINGERPRINT_MAP.put(SnmpContextv3Basis.SHA384_PROTOCOL, dummySHA384FingerPrint);
+    }
+
+    /**
  * Returns the String representation of the SNMP version number.
  * @param version The version number
  * @return The corresponding String.
@@ -1690,54 +1707,52 @@ final static void setBytesFromLong(byte[] ret, long value, int offs)
      * Returns an `AsnOctets` object with a dummy fingerprint based on the authentication protocol.
      * Returns an empty `AsnOctets` if authentication is not used.
      *
-     * @param context The SNMPv3 context.
      * @param authenticationProtocol The authentication protocol (e.g., SHA256, SHA1, etc.).
      * @return The corresponding fingerprint byte array
      */
-    public static byte[] initFingerprint(SnmpContextv3Basis context, int authenticationProtocol) {
-        byte[] dummyFingerprint = new byte[0];
-        if (authenticationProtocol == context.SHA256_PROTOCOL) {
-            dummyFingerprint = dummySHA256FingerPrint;
-        } else if(authenticationProtocol == context.SHA1_PROTOCOL ||
-                authenticationProtocol == context.MD5_PROTOCOL) {
-            dummyFingerprint = dummySha1FingerPrint;
-        } else if(authenticationProtocol == context.SHA512_PROTOCOL) {
-            dummyFingerprint = dummySHA512FingerPrint;
-        } else if (authenticationProtocol == context.SHA224_PROTOCOL) {
-            dummyFingerprint = dummySHA224FingerPrint;
-        } else if(authenticationProtocol == context.SHA384_PROTOCOL) {
-            dummyFingerprint = dummySHA384FingerPrint;
-        }
-        return dummyFingerprint;
+    public static byte[] initFingerprint(final int authenticationProtocol) {
+        // Return the mapped fingerprint if it exists, otherwise return an empty array.
+        return DUMMY_FINGERPRINT_MAP.getOrDefault(authenticationProtocol, new byte[0]);
     }
 
     /**
      * Copies the calculated fingerprint to the message at the specified position.
      *
-     * @param context The SNMP context.
      * @param authenticationProtocol The authentication protocol (e.g., SHA256, SHA1, etc.).
-     * @param calcFingerPrint The calculated fingerprint.
+     * @param computedFingerprint The calculated fingerprint.
      * @param message The message to which the fingerprint will be copied.
      * @param fpPos The position in the message where the fingerprint will be copied.
      */
-    public static void copyFingerprintToSnmpMessage(SnmpContextv3Basis context, int authenticationProtocol, byte[] calcFingerPrint, byte[] message, int fpPos)
-    {
-        if (authenticationProtocol == context.SHA256_PROTOCOL) {
-            // Replace the dummy finger print with the real finger print
-            System.arraycopy(calcFingerPrint, 0, message, fpPos, dummySHA256FingerPrint.length);
-        } else if(authenticationProtocol == context.SHA1_PROTOCOL ||
-                authenticationProtocol == context.MD5_PROTOCOL) {
-            // Replace the dummy finger print with the real finger print
-            System.arraycopy(calcFingerPrint, 0, message, fpPos, dummySha1FingerPrint.length);
-        } else if(authenticationProtocol == context.SHA512_PROTOCOL) {
-            // Replace the dummy finger print with the real finger print
-            System.arraycopy(calcFingerPrint, 0, message, fpPos, dummySHA512FingerPrint.length);
-        } else if (authenticationProtocol == context.SHA224_PROTOCOL) {
-            // Replace the dummy finger print with the real finger print
-            System.arraycopy(calcFingerPrint, 0, message, fpPos, dummySHA224FingerPrint.length);
-        } else if(authenticationProtocol == context.SHA384_PROTOCOL) {
-            // Replace the dummy finger print with the real finger print
-            System.arraycopy(calcFingerPrint, 0, message, fpPos, dummySHA384FingerPrint.length);
+    public static void copyFingerprintToSnmpMessage(
+            int authenticationProtocol,
+            byte[] computedFingerprint,
+            byte[] message,
+            int fpPos
+    ) {
+        int lengthToCopy = 0;
+        switch (authenticationProtocol) {
+            case SHA256_PROTOCOL:
+                lengthToCopy = dummySHA256FingerPrint.length;
+                break;
+            case SHA1_PROTOCOL:
+            case MD5_PROTOCOL:
+                lengthToCopy = dummySha1FingerPrint.length;
+                break;
+            case SHA512_PROTOCOL:
+                lengthToCopy = dummySHA512FingerPrint.length;
+                break;
+            case SHA224_PROTOCOL:
+                lengthToCopy = dummySHA224FingerPrint.length;
+                break;
+            case SHA384_PROTOCOL:
+                lengthToCopy = dummySHA384FingerPrint.length;
+                break;
+            default:
+                // unknown protocol; do nothing
+                break;
+        }
+        if (lengthToCopy > 0) {
+            System.arraycopy(computedFingerprint, 0, message, fpPos, lengthToCopy);
         }
     }
 }

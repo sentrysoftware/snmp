@@ -307,7 +307,7 @@ throws IOException, DecodingException
 
 			byte[] computedFingerprint = null;
 			// Init the fingerprint
-			byte[] dummyFingerPrint = SnmpUtilities.initFingerprint(context, authenticationProtocol);
+			byte[] dummyFingerPrint = SnmpUtilities.initFingerprint(authenticationProtocol);
 			System.arraycopy(dummyFingerPrint, 0, message, fpPos, realFingerPrint.length);
 
 			// Calculate the fingerprint
