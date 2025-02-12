@@ -62,11 +62,12 @@ package uk.co.westhawk.snmp.stack;
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * ╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱
  */
-import uk.co.westhawk.snmp.util.*;
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.stream.IntStream;
+
+import uk.co.westhawk.snmp.util.SnmpUtilities;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Enumeration;
 
 /**
  * This class contains the v3 specific methods to encode a Pdu into bytes.
@@ -80,26 +81,6 @@ class AsnEncoderv3 extends AsnEncoderBase
 {
     private static final String     version_id =
         "@(#)$Id: AsnEncoderv3.java,v 3.5 2009/03/05 12:48:59 birgita Exp $ Copyright Westhawk Ltd";
-
-	// 12 zero octets
-	static byte[] dummyFingerPrint = IntStream
-		.range(0, 12)
-		.collect(() -> 
-			ByteBuffer.allocate(12), // supplier
-			(buffer, i) -> buffer.put((byte) 0), // accumulator
-			(b1, b2) -> { } // combiner (empty since we're not parallelizing)
-		)
-		.array();
-
-	// 24 zero octets
-	static byte[] dummySHA256FingerPrint = IntStream
-		.range(0, 24)
-		.collect(() -> 
-			ByteBuffer.allocate(24), // supplier
-			(buffer, i) -> buffer.put((byte) 0), // accumulator
-			(b1, b2) -> { } // combiner (empty since we're not parallelizing)
-		)
-		.array();
 
 	/**
 	 * Encode SNMPv3 packet into bytes.
@@ -115,15 +96,17 @@ class AsnEncoderv3 extends AsnEncoderBase
 	 */
 	byte[] EncodeSNMPv3(SnmpContextv3Basis context, int contextMsgId, TimeWindowNode node, byte msg_type, int pduId,
 			int errstat, int errind, Enumeration ve) throws IOException, EncodingException {
-		ByteArrayOutputStream bout;
-		// Create authentication
-		AsnSequence asnTopSeq = new AsnSequence();
+
+		// Prepare the encoded message output stream to be sent to the SNMP agent
+		ByteArrayOutputStream encodedSnmpMessageOutputStream;
+
+		AsnSequence asnSequence = new AsnSequence();
 
 		// msgGlobalData = HeaderData
 		AsnSequence asnHeaderData = new AsnSequence();
 		asnHeaderData.add(new AsnInteger(contextMsgId));
 		asnHeaderData.add(new AsnInteger(context.getMaxRecvSize()));
-		asnHeaderData.add(new AsnOctets(getMsgFlags(context, msg_type)));
+		asnHeaderData.add(new AsnOctets(getMessageFlags(context, msg_type)));
 		asnHeaderData.add(new AsnInteger(context.USM_Security_Model));
 
 		// msgData = ScopedPdu (plaintext or encrypted)
@@ -144,161 +127,125 @@ class AsnEncoderv3 extends AsnEncoderBase
 		asnSecurityObject.add(new AsnInteger(node.getSnmpEngineBoots()));
 		asnSecurityObject.add(new AsnInteger(node.getSnmpEngineTime()));
 		asnSecurityObject.add(new AsnOctets(context.getUserName()));
-
-		AsnOctets fingerPrintOct;
+		AsnOctets fingerPrintOctets;
 		int authenticationProtocol = context.getAuthenticationProtocol();
-		if (context.isUseAuthentication()) {
-			byte[] dummyFp;
-			if (context.isSHA256()) {
-				dummyFp = dummySHA256FingerPrint;
-			} else {
-				dummyFp = dummyFingerPrint;
-			}
-			fingerPrintOct = new AsnOctets(dummyFp);
-		} else {
-			fingerPrintOct = new AsnOctets("");
-		}
-		asnSecurityObject.add(fingerPrintOct);
 
-		AsnOctets privOct;
+		byte[] dummyFingerprint;
+		if (context.isUseAuthentication()) {
+			dummyFingerprint = SnmpUtilities.initFingerprint(authenticationProtocol);
+			fingerPrintOctets = new AsnOctets(dummyFingerprint);
+		} else {
+			fingerPrintOctets = new AsnOctets("");
+		}
+		asnSecurityObject.add(fingerPrintOctets);
+
+		AsnOctets privacyAsnOctets;
 		AsnOctets asnEncryptedScopedPdu = null;
 		if (context.isUsePrivacy()) {
-			byte[] privKey = null;
-			if (authenticationProtocol == context.MD5_PROTOCOL) {
-				byte[] passwKey = context.getPrivacyPasswordKeyMD5();
-				privKey = SnmpUtilities.getLocalizedKeyMD5(passwKey, node.getSnmpEngineId());
-			} else if (authenticationProtocol == context.SHA1_PROTOCOL) {
-				byte[] passwKey = context.getPrivacyPasswordKeySHA1();
-				privKey = SnmpUtilities.getLocalizedKeySHA1(passwKey, node.getSnmpEngineId());
-			} else if (context.isSHA256()) {
-				byte[] passwKey = context.getPrivacyPasswordKeySHA256();
-				privKey = SnmpUtilities.getLocalizedKeySHA256(passwKey, node.getSnmpEngineId());
-			}
+			// Retrieves the localized privacy key from the derived privacy key
+			byte[] privacyKey = context.generatePrivacyKey(node.getSnmpEngineId(), authenticationProtocol);
 
-			int pprot = context.getPrivacyProtocol();
+			int privacyProtocol = context.getPrivacyProtocol();
 			byte[] salt = null;
-			if (pprot == context.AES_ENCRYPT) {
+			if (privacyProtocol == SnmpContextv3Face.AES_ENCRYPT) {
 				salt = SnmpUtilities.getSaltAES();
 			} else {
 				salt = SnmpUtilities.getSaltDES(node.getSnmpEngineBoots());
 			}
 
-			privOct = new AsnOctets(salt);
-			bout = new ByteArrayOutputStream();
-			asnPlainScopedPdu.write(bout);
+			privacyAsnOctets = new AsnOctets(salt);
+			encodedSnmpMessageOutputStream = new ByteArrayOutputStream();
+			asnPlainScopedPdu.write(encodedSnmpMessageOutputStream);
 
-			byte[] plaintext = bout.toByteArray();
+			byte[] plaintext = encodedSnmpMessageOutputStream.toByteArray();
 			byte[] encryptedText = null;
-			if (pprot == context.AES_ENCRYPT) {
-				encryptedText = SnmpUtilities.AESencrypt(plaintext, privKey, node.getSnmpEngineBoots(),
+			if (privacyProtocol == SnmpContextv3Face.AES_ENCRYPT) {
+				encryptedText = SnmpUtilities.AESencrypt(plaintext, privacyKey, node.getSnmpEngineBoots(),
 						node.getSnmpEngineTime(), salt);
 			} else {
-				encryptedText = SnmpUtilities.DESencrypt(plaintext, privKey, salt);
+				encryptedText = SnmpUtilities.DESencrypt(plaintext, privacyKey, salt);
 			}
 
 			asnEncryptedScopedPdu = new AsnOctets(encryptedText);
 			if (AsnObject.debug > 10) {
-				System.out.println("Encrypted body  with " + context.ProtocolNames[pprot]);
+				System.out.println("Encrypted body  with " + SnmpContextv3Face.PROTOCOL_NAMES[privacyProtocol]);
 			}
 		} else {
-			privOct = new AsnOctets("");
+			privacyAsnOctets = new AsnOctets("");
 		}
-		asnSecurityObject.add(privOct);
+		asnSecurityObject.add(privacyAsnOctets);
 
 		ByteArrayOutputStream secOut = new ByteArrayOutputStream();
 		asnSecurityObject.write(secOut);
 		byte[] bytes = secOut.toByteArray();
 		AsnOctets asnSecurityParameters = new AsnOctets(bytes);
 
-		asnTopSeq.add(new AsnInteger(SnmpConstants.SNMP_VERSION_3));
-		asnTopSeq.add(asnHeaderData);
-		asnTopSeq.add(asnSecurityParameters);
+		asnSequence.add(new AsnInteger(SnmpConstants.SNMP_VERSION_3));
+		asnSequence.add(asnHeaderData);
+		asnSequence.add(asnSecurityParameters);
 		if (context.isUsePrivacy()) {
-			asnTopSeq.add(asnEncryptedScopedPdu);
+			asnSequence.add(asnEncryptedScopedPdu);
 		} else {
-			asnTopSeq.add(asnPlainScopedPdu);
+			asnSequence.add(asnPlainScopedPdu);
 		}
 
 		if (AsnObject.debug > 10) {
 			System.out.println("\n" + getClass().getName() + ".EncodeSNMPv3(): ");
 		}
 		// Write SNMP object
-		bout = new ByteArrayOutputStream();
-		asnTopSeq.write(bout);
+		encodedSnmpMessageOutputStream = new ByteArrayOutputStream();
+		asnSequence.write(encodedSnmpMessageOutputStream);
 
-		int sz = bout.size();
+		int sz = encodedSnmpMessageOutputStream.size();
 		if (sz > context.getMaxRecvSize()) {
 			throw new EncodingException(
 					"Packet size (" + sz + ") is > maximum size (" + context.getMaxRecvSize() + ")");
 		}
-		byte[] message = bout.toByteArray();
+		byte[] message = encodedSnmpMessageOutputStream.toByteArray();
 
 		// can only do this at after building the whole message
 		if (context.isUseAuthentication()) {
-			byte[] calcFingerPrint = null;
+			byte[] computedFingerprint = null;
 
-			if (authenticationProtocol == context.MD5_PROTOCOL) {
-				byte[] passwKey = context.getAuthenticationPasswordKeyMD5();
-				byte[] authkey = SnmpUtilities.getLocalizedKeyMD5(passwKey, node.getSnmpEngineId());
-				calcFingerPrint = SnmpUtilities.getFingerPrintMD5(authkey, message);
-			} else if (authenticationProtocol == context.SHA1_PROTOCOL) {
-				byte[] passwKey = context.getAuthenticationPasswordKeySHA1();
-				byte[] authkey = SnmpUtilities.getLocalizedKeySHA1(passwKey, node.getSnmpEngineId());
-				calcFingerPrint = SnmpUtilities.getFingerPrintSHA1(authkey, message);
-			} else if (context.isSHA256()) {
-				byte[] passwKey = context.getAuthenticationPasswordKeySHA256();
-				byte[] authkey = SnmpUtilities.getLocalizedKeySHA256(passwKey, node.getSnmpEngineId());
-				calcFingerPrint = SnmpUtilities.getFingerPrintSHA256(authkey, message);
-			}
+			// Calculate the fingerprint
+			computedFingerprint = context.computeFingerprint(node.getSnmpEngineId(), authenticationProtocol, computedFingerprint, message);
 
 			int usmPos = asnSecurityParameters.getContentsPos();
-			int fpPos = fingerPrintOct.getContentsPos();
+			int fpPos = fingerPrintOctets.getContentsPos();
 			fpPos += usmPos;
 			if (AsnObject.debug > 10) {
-				int fpLength = fingerPrintOct.getContentsLength();
+				int fpLength = fingerPrintOctets.getContentsLength();
 				String str = "Pos finger print = " + fpPos + ", len = " + fpLength;
-				SnmpUtilities.dumpBytes(str, calcFingerPrint);
+				SnmpUtilities.dumpBytes(str, computedFingerprint);
 			}
 
-			if (context.isSHA256()) {
-				// Replace the dummy finger print with the real finger print
-				System.arraycopy(calcFingerPrint, 0, message, fpPos, dummySHA256FingerPrint.length);
-			} else {
-				// Replace the dummy finger print with the real finger print
-				System.arraycopy(calcFingerPrint, 0, message, fpPos, dummyFingerPrint.length);
-			}
+			// Copy the fingerprint to the message
+			SnmpUtilities.copyFingerprintToSnmpMessage(authenticationProtocol, computedFingerprint, message, fpPos);
 
 		}
 		return message;
 	}
 
-private byte[] getMsgFlags(SnmpContextv3Basis context, byte msg_type) throws EncodingException
-{
-    byte authMask = (byte)(0x0);
-    if (context.isUseAuthentication())
-    {
-        authMask = (byte)(0x1);
-    }
-    byte privMask = (byte)(0x0);
-    if (context.isUsePrivacy())
-    {
-        if (context.isUseAuthentication())
-        {
-            privMask = (byte)(0x2);
-        }
-        else
-        {
-            throw new EncodingException("Encryption without authentication is not allowed");
-        }
-    }
-    byte reportMask = (byte)(0x0);
-    if (context.isAuthoritative(msg_type) == false)
-    {
-        reportMask = (byte)(0x4);
-    }
-    byte [] msgFlags = new byte[1];
-    msgFlags[0] = (byte) (authMask | privMask | reportMask);
-    return msgFlags;
-}
 
+	private byte[] getMessageFlags(SnmpContextv3Basis context, byte messageType) throws EncodingException {
+		byte authMask = (byte) (0x0);
+		if (context.isUseAuthentication()) {
+			authMask = (byte) (0x1);
+		}
+		byte privMask = (byte) (0x0);
+		if (context.isUsePrivacy()) {
+			if (context.isUseAuthentication()) {
+				privMask = (byte) (0x2);
+			} else {
+				throw new EncodingException("Encryption without authentication is not allowed");
+			}
+		}
+		byte reportMask = (byte) (0x0);
+		if (context.isAuthoritative(messageType) == false) {
+			reportMask = (byte) (0x4);
+		}
+		byte[] msgFlags = new byte[1];
+		msgFlags[0] = (byte) (authMask | privMask | reportMask);
+		return msgFlags;
+	}
 }

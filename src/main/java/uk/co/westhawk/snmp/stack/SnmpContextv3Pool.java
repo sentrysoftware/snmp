@@ -103,7 +103,7 @@ public class SnmpContextv3Pool implements SnmpContextv3Face
     protected String userPrivacyPassword = "";
     protected int authenticationProtocol = MD5_PROTOCOL;
     protected byte [] contextEngineId = new byte[0];
-    protected String contextName = Default_ContextName;
+    protected String contextName = DEFAULT_CONTEXT_NAME;
     protected UsmAgent usmAgent = null;
 
     protected boolean hasChanged = false;
@@ -308,7 +308,7 @@ public void setPrivacyProtocol(int protocol) throws IllegalArgumentException
 public void setAuthenticationProtocol(int protocol)
 throws IllegalArgumentException
 {
-    if (protocol == MD5_PROTOCOL || protocol == SHA1_PROTOCOL || protocol == SHA256_PROTOCOL)
+    if (AUTH_PROTOCOLS.contains(protocol))
     {
         if (protocol != authenticationProtocol)
         {
@@ -320,7 +320,7 @@ throws IllegalArgumentException
     {
         hasChanged = false;
         throw new IllegalArgumentException("Authentication Protocol "
-            + "should be MD5 or SHA1");
+            + "should be MD5 or SHA1 or SHA256 or SHA384 or SHA512");
     }
 }
 
@@ -677,8 +677,8 @@ public String getHashKey()
     buffer.append("_").append(bindAddr);
     buffer.append("_").append(socketType);
     buffer.append("_").append(useAuthentication);
-    buffer.append("_").append(ProtocolNames[authenticationProtocol]);
-    buffer.append("_").append(ProtocolNames[privacyProtocol]);
+    buffer.append("_").append(PROTOCOL_NAMES[authenticationProtocol]);
+    buffer.append("_").append(PROTOCOL_NAMES[privacyProtocol]);
     buffer.append("_").append(userAuthenticationPassword);
     buffer.append("_").append(userName);
     buffer.append("_").append(usePrivacy);

@@ -48,12 +48,8 @@ package uk.co.westhawk.snmp.stack;
  * ╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱╲╱
  */
 
-import java.net.*;
 import java.io.*;
-import java.util.*;
 
-import uk.co.westhawk.snmp.pdu.*;
-import uk.co.westhawk.snmp.util.*;
 import uk.co.westhawk.snmp.event.*;
 import uk.co.westhawk.snmp.beans.*;
 
@@ -231,7 +227,7 @@ throws DecodingException, IOException
     AsnDecoderv3 rpdu = new AsnDecoderv3();
     ByteArrayInputStream in = new ByteArrayInputStream(message);
     AsnSequence asnTopSeq = rpdu.DecodeSNMPv3(in);
-    int msgId = rpdu.getMsgId(asnTopSeq);
+    int messageId = rpdu.getMessageId(asnTopSeq);
 
     Pdu pdu = null;
 
@@ -295,7 +291,7 @@ throws DecodingException, IOException
 
     if (pdu != null)
     {
-        pdu.snmpv3MsgId = new Integer(msgId);
+        pdu.snmpv3MsgId = new Integer(messageId);
     }
     else
     {

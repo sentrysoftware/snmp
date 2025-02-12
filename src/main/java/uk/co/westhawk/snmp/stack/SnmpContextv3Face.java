@@ -50,6 +50,11 @@ package uk.co.westhawk.snmp.stack;
  */
 import uk.co.westhawk.snmp.pdu.*;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * This interface contains the SNMP context interface that is needed by every 
  * PDU to send a SNMP v3 request.
@@ -108,31 +113,63 @@ public interface SnmpContextv3Face extends SnmpContextBasisFace
      * The default value for the (security) user name. This is
      * "initial".
      */
-    public final static String Default_UserName = "initial";
+    public final static String DEFAULT_USERNAME = "initial";
 
     /**
      * The default Context Name. This is the zero length string, i.e. "".
      */
-    public final static String Default_ContextName = "";
+    public final static String DEFAULT_CONTEXT_NAME = "";
 
     /**
      * The array with the String represensations of the protocols.
      */
-    public final static String ProtocolNames [] =
+    public final static String PROTOCOL_NAMES[] =
     {
         "MD5",
         "SHA1",
         "DES",
         "AES",
         "SHA256",
+        "SHA512",
+        "SHA224",
+        "SHA384"
     };
+
+    /**
+     * The NoAuth protocol type.
+     */
+    public static final int NO_AUTH_PROTOCOL = PROTOCOL_NAMES.length;
 
 	/**
 	 * The SHA-256 protocol type.
 	 */
 	public static final int SHA256_PROTOCOL = 4;
 
-/**
+    /**
+     * The SHA-512 protocol type.
+     */
+    public static final int SHA512_PROTOCOL = 5;
+
+    /**
+     * The SHA-224 protocol type.
+     */
+    public static final int SHA224_PROTOCOL = 6;
+
+    /**
+     * The SHA-224 protocol type.
+     */
+    public static final int SHA384_PROTOCOL = 7;
+
+    /**
+     * Authentication protocols codes that are supported by SNMPv3.
+     */
+    public static final Set<Integer> AUTH_PROTOCOLS = Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList(MD5_PROTOCOL, SHA1_PROTOCOL,
+            SHA256_PROTOCOL, SHA512_PROTOCOL,
+            SHA224_PROTOCOL, SHA384_PROTOCOL))
+    );
+
+    /**
  * Returns the username.
  *
  * @return the username
@@ -306,7 +343,7 @@ public byte [] getContextEngineId();
  * By default this is "". 
  *
  * @param newContextName The contextName
- * @see #Default_ContextName
+ * @see #DEFAULT_CONTEXT_NAME
  */
 public void setContextName(String newContextName);
 
