@@ -70,7 +70,6 @@ import java.io.IOException;
 import java.util.Enumeration;
 
 import static uk.co.westhawk.snmp.util.SnmpUtilities.copyFingerprintToSnmpMessage;
-import static uk.co.westhawk.snmp.util.SnmpUtilities.initFingerprint;
 
 /**
  * This class contains the v3 specific methods to encode a Pdu into bytes.
@@ -135,7 +134,7 @@ class AsnEncoderv3 extends AsnEncoderBase
 
 		byte[] dummyFingerprint;
 		if (context.isUseAuthentication()) {
-			dummyFingerprint = initFingerprint(context, authenticationProtocol);
+			dummyFingerprint = SnmpUtilities.initFingerprint(context, authenticationProtocol);
 			fingerPrintOctets = new AsnOctets(dummyFingerprint);
 		} else {
 			fingerPrintOctets = new AsnOctets("");

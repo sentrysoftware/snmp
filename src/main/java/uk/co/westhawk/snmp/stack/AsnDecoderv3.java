@@ -67,8 +67,6 @@ import java.io.InputStream;
 
 import uk.co.westhawk.snmp.util.SnmpUtilities;
 
-import static uk.co.westhawk.snmp.util.SnmpUtilities.initFingerprint;
-
 /**
  * This class contains the v3 specific methods to decode bytes into a Pdu.
  * We split the original class AsnDecoder into four classes.
@@ -309,7 +307,7 @@ throws IOException, DecodingException
 
 			byte[] computedFingerprint = null;
 			// Init the fingerprint
-			byte[] dummyFingerPrint = initFingerprint(context, authenticationProtocol);
+			byte[] dummyFingerPrint = SnmpUtilities.initFingerprint(context, authenticationProtocol);
 			System.arraycopy(dummyFingerPrint, 0, message, fpPos, realFingerPrint.length);
 
 			// Calculate the fingerprint
