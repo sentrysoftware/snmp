@@ -121,13 +121,6 @@ public interface SnmpContextv3Face extends SnmpContextBasisFace
     public final static String DEFAULT_CONTEXT_NAME = "";
 
     /**
-     * Authentication protocols codes that are supported by SNMPv3.
-     */
-    public static final Set<Integer> AUTH_PROTOCOLS = Collections.unmodifiableSet(
-            new HashSet<>(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7))
-    );
-
-    /**
      * The array with the String represensations of the protocols.
      */
     public final static String PROTOCOL_NAMES[] =
@@ -167,7 +160,16 @@ public interface SnmpContextv3Face extends SnmpContextBasisFace
      */
     public static final int SHA384_PROTOCOL = 7;
 
-/**
+    /**
+     * Authentication protocols codes that are supported by SNMPv3.
+     */
+    public static final Set<Integer> AUTH_PROTOCOLS = Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList(MD5_PROTOCOL, SHA1_PROTOCOL,
+            SHA256_PROTOCOL, SHA512_PROTOCOL,
+            SHA224_PROTOCOL, SHA384_PROTOCOL))
+    );
+
+    /**
  * Returns the username.
  *
  * @return the username
