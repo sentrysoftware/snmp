@@ -308,7 +308,7 @@ public void setPrivacyProtocol(int protocol) throws IllegalArgumentException
 public void setAuthenticationProtocol(int protocol)
 throws IllegalArgumentException
 {
-    if (protocol == MD5_PROTOCOL || protocol == SHA1_PROTOCOL || protocol == SHA256_PROTOCOL)
+    if (AUTH_PROTOCOLS.contains(protocol))
     {
         if (protocol != authenticationProtocol)
         {
@@ -320,7 +320,7 @@ throws IllegalArgumentException
     {
         hasChanged = false;
         throw new IllegalArgumentException("Authentication Protocol "
-            + "should be MD5 or SHA1");
+            + "should be MD5 or SHA1 or SHA256 or SHA384 or SHA512");
     }
 }
 

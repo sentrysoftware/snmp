@@ -246,7 +246,7 @@ throws IOException, DecodingException
 			AsnSequence asnPlainScopedPdu = null;
 			if (isUsePrivacy == true) {
 				// Retrieves the localized privacy key from the derived privacy key
-				byte[] privacyKey = context.generatePrivacyKey(context, engineId, authenticationProtocol);
+				byte[] privacyKey = context.generatePrivacyKey(engineId, authenticationProtocol);
 
 				AsnOctets asnEncryptedScopedPdu = (AsnOctets) asnScopedObject;
 				byte[] encryptedText = asnEncryptedScopedPdu.getBytes();
@@ -311,7 +311,7 @@ throws IOException, DecodingException
 			System.arraycopy(dummyFingerPrint, 0, message, fpPos, realFingerPrint.length);
 
 			// Calculate the fingerprint
-			computedFingerprint = context.computeFingerprint(context, engineId, authenticationProtocol, computedFingerprint, message);
+			computedFingerprint = context.computeFingerprint(engineId, authenticationProtocol, computedFingerprint, message);
 
 			if (SnmpUtilities.areBytesEqual(realFingerPrint, computedFingerprint) == false) {
 				String msg = "Authentication comparison failed";

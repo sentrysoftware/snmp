@@ -296,9 +296,7 @@ public void setUserAuthenticationPassword(String newUserAuthPassword)
 public void setAuthenticationProtocol(int protocol)
 throws IllegalArgumentException
 {
-    if (protocol == MD5_PROTOCOL || protocol == SHA1_PROTOCOL || protocol == SHA256_PROTOCOL ||
-		protocol == SHA512_PROTOCOL || protocol == SHA224_PROTOCOL ||
-	protocol == SHA384_PROTOCOL)
+    if (AUTH_PROTOCOLS.contains(protocol))
     {
         if (protocol != authenticationProtocol)
         {
@@ -308,7 +306,7 @@ throws IllegalArgumentException
     else
     {
         throw new IllegalArgumentException("Authentication Protocol "
-            + "should be MD5 or SHA1");
+            + "should be MD5 or SHA1 or SHA256 or SHA512 or SHA224 or SHA384");
     }
 }
 
@@ -1274,31 +1272,30 @@ public String toString()
 	/**
 	 * Generates the privacy key based on the authentication protocol.
 	 *
-	 * @param context The SNMP context.
 	 * @param engineId The SNMP engine ID.
 	 * @param authenticationProtocol The authentication protocol.
 	 * @return The generated privacy key.
 	 */
-	protected byte[] generatePrivacyKey(SnmpContextv3Basis context, String engineId, int authenticationProtocol) {
+	protected byte[] generatePrivacyKey(String engineId, int authenticationProtocol) {
 		byte[] derivedPrivacyKey;
 		byte[] localizedPrivacyKey = null;
-		if (authenticationProtocol == context.MD5_PROTOCOL) {
-			derivedPrivacyKey = context.getPrivacyPasswordKeyMD5();
+		if (authenticationProtocol == MD5_PROTOCOL) {
+			derivedPrivacyKey = getPrivacyPasswordKeyMD5();
 			localizedPrivacyKey = SnmpUtilities.getLocalizedKeyMD5(derivedPrivacyKey, engineId);
-		} else if (authenticationProtocol == context.SHA1_PROTOCOL) {
-			derivedPrivacyKey = context.getPrivacyPasswordKeySHA1();
+		} else if (authenticationProtocol == SHA1_PROTOCOL) {
+			derivedPrivacyKey = getPrivacyPasswordKeySHA1();
 			localizedPrivacyKey = SnmpUtilities.getLocalizedKeySHA1(derivedPrivacyKey, engineId);
-		} else if (authenticationProtocol == context.SHA256_PROTOCOL) {
-			derivedPrivacyKey = context.getPrivacyPasswordKeySHA256();
+		} else if (authenticationProtocol == SHA256_PROTOCOL) {
+			derivedPrivacyKey = getPrivacyPasswordKeySHA256();
 			localizedPrivacyKey = SnmpUtilities.getLocalizedKeySHA256(derivedPrivacyKey, engineId);
-		} else if (authenticationProtocol == context.SHA512_PROTOCOL) {
-			derivedPrivacyKey = context.getPrivacyPasswordKeySHA512();
+		} else if (authenticationProtocol == SHA512_PROTOCOL) {
+			derivedPrivacyKey = getPrivacyPasswordKeySHA512();
 			localizedPrivacyKey = SnmpUtilities.getLocalizedKeySHA512(derivedPrivacyKey, engineId);
-		} else if (authenticationProtocol == context.SHA224_PROTOCOL) {
-			derivedPrivacyKey = context.getPrivacyPasswordKeySHA224();
+		} else if (authenticationProtocol == SHA224_PROTOCOL) {
+			derivedPrivacyKey = getPrivacyPasswordKeySHA224();
 			localizedPrivacyKey = SnmpUtilities.getLocalizedKeySHA224(derivedPrivacyKey, engineId);
-		} else if(authenticationProtocol == context.SHA384_PROTOCOL) {
-			derivedPrivacyKey = context.getPrivacyPasswordKeySHA384();
+		} else if(authenticationProtocol == SHA384_PROTOCOL) {
+			derivedPrivacyKey = getPrivacyPasswordKeySHA384();
 			localizedPrivacyKey = SnmpUtilities.getLocalizedKeySHA384(derivedPrivacyKey, engineId);
 		}
 		return localizedPrivacyKey;
@@ -1307,36 +1304,35 @@ public String toString()
 	/**
 	 * Computes the fingerprint for the given SNMP message.
 	 *
-	 * @param context The SNMP context.
 	 * @param snmpEngineId The SNMP engine ID.
 	 * @param authenticationProtocol The authentication protocol.
 	 * @param computedFingerprint The computed fingerprint.
 	 * @param message The SNMP message.
 	 * @return The computed fingerprint.
 	 */
-	protected byte[] computeFingerprint(SnmpContextv3Basis context, String snmpEngineId, int authenticationProtocol, byte[] computedFingerprint, byte[] message) {
-		if (authenticationProtocol == context.MD5_PROTOCOL) {
-			byte[] passwKey = context.getAuthenticationPasswordKeyMD5();
+	protected byte[] computeFingerprint(String snmpEngineId, int authenticationProtocol, byte[] computedFingerprint, byte[] message) {
+		if (authenticationProtocol == MD5_PROTOCOL) {
+			byte[] passwKey = getAuthenticationPasswordKeyMD5();
 			byte[] authkey = SnmpUtilities.getLocalizedKeyMD5(passwKey, snmpEngineId);
 			computedFingerprint = SnmpUtilities.getFingerPrintMD5(authkey, message);
-		} else if (authenticationProtocol == context.SHA1_PROTOCOL) {
-			byte[] passwKey = context.getAuthenticationPasswordKeySHA1();
+		} else if (authenticationProtocol == SHA1_PROTOCOL) {
+			byte[] passwKey = getAuthenticationPasswordKeySHA1();
 			byte[] authkey = SnmpUtilities.getLocalizedKeySHA1(passwKey, snmpEngineId);
 			computedFingerprint = SnmpUtilities.getFingerPrintSHA1(authkey, message);
-		} else if (authenticationProtocol == context.SHA256_PROTOCOL) {
-			byte[] passwKey = context.getAuthenticationPasswordKeySHA256();
+		} else if (authenticationProtocol == SHA256_PROTOCOL) {
+			byte[] passwKey = getAuthenticationPasswordKeySHA256();
 			byte[] authkey = SnmpUtilities.getLocalizedKeySHA256(passwKey,snmpEngineId);
 			computedFingerprint = SnmpUtilities.getFingerPrintSHA256(authkey, message);
-		} else if(authenticationProtocol == context.SHA512_PROTOCOL) {
-			byte[] passwKey = context.getAuthenticationPasswordKeySHA512();
+		} else if(authenticationProtocol == SHA512_PROTOCOL) {
+			byte[] passwKey = getAuthenticationPasswordKeySHA512();
 			byte[] authkey = SnmpUtilities.getLocalizedKeySHA512(passwKey, snmpEngineId);
 			computedFingerprint = SnmpUtilities.getFingerPrintSHA512(authkey, message);
-		} else if (authenticationProtocol == context.SHA224_PROTOCOL) {
-			byte[] passwKey = context.getAuthenticationPasswordKeySHA224();
+		} else if (authenticationProtocol == SHA224_PROTOCOL) {
+			byte[] passwKey = getAuthenticationPasswordKeySHA224();
 			byte[] authkey = SnmpUtilities.getLocalizedKeySHA224(passwKey, snmpEngineId);
 			computedFingerprint = SnmpUtilities.getFingerPrintSHA224(authkey, message);
-		} else if (authenticationProtocol == context.SHA384_PROTOCOL) {
-			byte[] passwKey = context.getAuthenticationPasswordKeySHA384();
+		} else if (authenticationProtocol == SHA384_PROTOCOL) {
+			byte[] passwKey = getAuthenticationPasswordKeySHA384();
 			byte[] authkey = SnmpUtilities.getLocalizedKeySHA384(passwKey, snmpEngineId);
 			computedFingerprint = SnmpUtilities.getFingerPrintSHA384(authkey, message);
 		}

@@ -50,6 +50,11 @@ package uk.co.westhawk.snmp.stack;
  */
 import uk.co.westhawk.snmp.pdu.*;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * This interface contains the SNMP context interface that is needed by every 
  * PDU to send a SNMP v3 request.
@@ -114,6 +119,13 @@ public interface SnmpContextv3Face extends SnmpContextBasisFace
      * The default Context Name. This is the zero length string, i.e. "".
      */
     public final static String DEFAULT_CONTEXT_NAME = "";
+
+    /**
+     * Authentication protocols codes that are supported by SNMPv3.
+     */
+    public static final Set<Integer> AUTH_PROTOCOLS = Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7))
+    );
 
     /**
      * The array with the String represensations of the protocols.

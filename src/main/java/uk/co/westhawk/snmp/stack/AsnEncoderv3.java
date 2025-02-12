@@ -143,11 +143,11 @@ class AsnEncoderv3 extends AsnEncoderBase
 		AsnOctets asnEncryptedScopedPdu = null;
 		if (context.isUsePrivacy()) {
 			// Retrieves the localized privacy key from the derived privacy key
-			byte[] privacyKey = context.generatePrivacyKey(context, node.getSnmpEngineId(), authenticationProtocol);
+			byte[] privacyKey = context.generatePrivacyKey(node.getSnmpEngineId(), authenticationProtocol);
 
 			int privacyProtocol = context.getPrivacyProtocol();
 			byte[] salt = null;
-			if (privacyProtocol == context.AES_ENCRYPT) {
+			if (privacyProtocol == SnmpContextv3Face.AES_ENCRYPT) {
 				salt = SnmpUtilities.getSaltAES();
 			} else {
 				salt = SnmpUtilities.getSaltDES(node.getSnmpEngineBoots());
@@ -159,7 +159,7 @@ class AsnEncoderv3 extends AsnEncoderBase
 
 			byte[] plaintext = encodedSnmpMessageOutputStream.toByteArray();
 			byte[] encryptedText = null;
-			if (privacyProtocol == context.AES_ENCRYPT) {
+			if (privacyProtocol == SnmpContextv3Face.AES_ENCRYPT) {
 				encryptedText = SnmpUtilities.AESencrypt(plaintext, privacyKey, node.getSnmpEngineBoots(),
 						node.getSnmpEngineTime(), salt);
 			} else {
@@ -168,7 +168,7 @@ class AsnEncoderv3 extends AsnEncoderBase
 
 			asnEncryptedScopedPdu = new AsnOctets(encryptedText);
 			if (AsnObject.debug > 10) {
-				System.out.println("Encrypted body  with " + context.PROTOCOL_NAMES[privacyProtocol]);
+				System.out.println("Encrypted body  with " + SnmpContextv3Face.PROTOCOL_NAMES[privacyProtocol]);
 			}
 		} else {
 			privacyAsnOctets = new AsnOctets("");
@@ -208,7 +208,7 @@ class AsnEncoderv3 extends AsnEncoderBase
 			byte[] computedFingerprint = null;
 
 			// Calculate the fingerprint
-			computedFingerprint = context.computeFingerprint(context, node.getSnmpEngineId(), authenticationProtocol, computedFingerprint, message);
+			computedFingerprint = context.computeFingerprint(node.getSnmpEngineId(), authenticationProtocol, computedFingerprint, message);
 
 			int usmPos = asnSecurityParameters.getContentsPos();
 			int fpPos = fingerPrintOctets.getContentsPos();
